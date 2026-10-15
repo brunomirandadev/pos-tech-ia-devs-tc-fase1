@@ -43,7 +43,7 @@ Para garantir a reprodutibilidade exata do ambiente de desenvolvimento, o projet
 1. Clone o repositório em sua máquina:
 
 	```bash
-	git clone https://github.com/SEU-USUARIO/tech-challenge-fase1-ia-devs.git
+	git clone https://github.com/brunomirandadev/pos-tech-ia-devs-tc-fase1.git
 	cd tech-challenge-fase1-ia-devs
 	```
 
