@@ -61,7 +61,7 @@ if coluna_alvo:
     print(df[alvo].value_counts(normalize=True) * 100)
 
     plt.figure(figsize=(6, 4))
-    sns.countplot(data=df, x=alvo, palette="Set2")
+    sns.countplot(data=df, x=alvo, hue=alvo, palette="Set2", legend=False)
     plt.title(f"Distribuição dos Diagnósticos ({alvo})")
     plt.xlabel("Diagnóstico")
     plt.ylabel("Frequência")
