@@ -49,9 +49,20 @@ uv --version
 
 ```powershell
 uv python install 3.13
+uv python pin 3.13
 uv venv --python 3.13
 uv pip install -r requirements.txt
 ```
+
+O comando `uv python pin 3.13` registra a versão escolhida no arquivo `.python-version` para os comandos do uv neste projeto. Ele não altera uma venv existente nem o kernel selecionado no VS Code.
+
+Opcionalmente, para definir o Python 3.13 como padrão do uv para o seu usuário:
+
+```powershell
+uv python pin --global 3.13
+```
+
+A opção `--global` grava a preferência na configuração do usuário do uv. Uma versão definida no projeto tem prioridade sobre essa preferência global. Isso não substitui o Python do sistema nem altera uma venv existente ou o kernel do VS Code.
 
 O uv cria e detecta automaticamente o ambiente padrão `.venv`. Não versione essa pasta nem a inclua na imagem Docker.
 
