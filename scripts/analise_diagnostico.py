@@ -5,7 +5,8 @@
 # ==========================================
 # 1. IMPORTAÇÃO DAS BIBLIOTECAS E CONFIGURAÇÃO
 # ==========================================
-import os
+from pathlib import Path
+from IPython.display import display
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ pd.set_option('display.max_columns', None)
 # ==========================================
 # 2. CARREGAMENTO E INSPEÇÃO INICIAL DA BASE
 # ==========================================
-caminho_arquivo = "../data/BreastCancer.csv" if os.path.exists("../data/BreastCancer.csv") else "data/BreastCancer.csv"
+caminho_arquivo = Path(__file__).resolve().parent.parent / "data" / "BreastCancer.csv"
 df = pd.read_csv(caminho_arquivo)
 
 print("--- 5 PRIMEIRAS LINHAS ---")

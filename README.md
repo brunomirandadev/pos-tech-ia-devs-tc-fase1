@@ -16,6 +16,7 @@ O objetivo principal é construir uma solução inicial com foco em IA para o pr
 📦 tech-challenge-fase1-ia-devs
  ┣ 📂 data/                 # Pasta contendo o dataset utilizado (CSV)
  ┣ 📂 notebook/             # Jupyter Notebooks com a análise, EDA e modelagem
+ ┣ 📂 scripts/              # Scripts Python para execução da análise
  ┣ 📜 Dockerfile            # Arquivo de configuração do container Docker
  ┣ 📜 requirements.txt      # Dependências e bibliotecas Python utilizadas
  ┗ 📜 README.md             # Documentação do projeto
@@ -71,6 +72,16 @@ Para listar os interpretadores instalados:
 ```powershell
 uv python list --only-installed
 ```
+
+### Executar a Análise como Script
+
+Após instalar as dependências, execute na raiz do projeto:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/analise_diagnostico.py
+```
+
+O script localiza o CSV a partir da sua própria localização e exibe os gráficos em janelas locais.
 
 ### Executar o Notebook no VS Code
 
