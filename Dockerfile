@@ -1,5 +1,5 @@
 # Usa uma imagem oficial e leve do Python
-FROM python:3.9-slim
+FROM python:3.13-slim
 
 # Define a pasta de trabalho principal dentro do container
 WORKDIR /app

@@ -23,11 +23,67 @@ O objetivo principal é construir uma solução inicial com foco em IA para o pr
 
 ## 🛠️ Tecnologias Utilizadas
 
-- Python 3.9
+- Python 3.13
 - Pandas & NumPy (Manipulação e análise de dados)
 - Matplotlib & Seaborn (Visualização de dados e gráficos)
 - Scikit-Learn (Modelagem preditiva e métricas de avaliação)
 - Docker (Empacotamento e isolamento do ambiente com Jupyter Notebook)
+
+## Execução Local com uv (Sem Docker)
+
+Execute os comandos abaixo no PowerShell, na raiz do projeto. O ambiente local usa Python 3.13, assim como o Dockerfile.
+
+### Instalar o uv
+
+```powershell
+winget install --id astral-sh.uv --exact
+```
+
+Após a instalação, abra um novo terminal e confirme:
+
+```powershell
+uv --version
+```
+
+### Preparar o Python e o Ambiente Virtual
+
+```powershell
+uv python install 3.13
+uv venv --python 3.13
+uv pip install -r requirements.txt
+```
+
+O uv cria e detecta automaticamente o ambiente padrão `.venv`. Não versione essa pasta nem a inclua na imagem Docker.
+
+Para listar os interpretadores instalados:
+
+```powershell
+uv python list --only-installed
+```
+
+### Executar o Notebook no VS Code
+
+1. Instale as extensões **Python** e **Jupyter** da Microsoft no VS Code.
+2. Abra `notebook/analise_diagnostico.ipynb`.
+3. Clique em **Selecionar Kernel**, escolha **Ambientes Python** e selecione `.venv/Scripts/python.exe`. Se não aparecer, use **Python: Select Interpreter** na paleta de comandos para informar esse caminho e selecione novamente o kernel.
+4. Execute as células em ordem ou use **Executar Tudo**.
+
+O `ipykernel` já está incluído em `requirements.txt`. Ativar uma venv no terminal não altera automaticamente o kernel do notebook.
+
+Para confirmar o interpretador e a disponibilidade do kernel:
+
+```powershell
+uv pip check
+.\.venv\Scripts\python.exe -c "import sys, ipykernel; print(sys.executable); print(sys.version)"
+```
+
+### Executar o Jupyter no Navegador
+
+```powershell
+.\.venv\Scripts\jupyter.exe notebook
+```
+
+Abra a URL com token exibida no terminal. Para encerrar o servidor, use `Ctrl+C` no mesmo terminal.
 
 ## 🚀 Como Executar o Container e Acessar o Projeto
 
