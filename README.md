@@ -98,12 +98,14 @@ Abra a URL com token exibida no terminal. Para encerrar o servidor, use `Ctrl+C`
 
 ## 🚀 Como Executar o Container e Acessar o Projeto
 
-Para garantir a reprodutibilidade exata do ambiente de desenvolvimento, o projeto utiliza Docker para rodar um container isolado contendo o Jupyter Notebook.
+O projeto utiliza Docker para rodar um container isolado contendo o Jupyter Notebook. As dependências diretas têm versões fixadas em `requirements.txt`; a reprodução exata ainda depende de fixar as dependências transitivas e a imagem base por digest.
+
+O Jupyter executa como usuário sem privilégios (`app`). As dependências são instaladas no Python da imagem durante o build, e a `.venv` local é excluída pelo `.dockerignore`.
 
 ### Pré-requisitos Importantes
 
 - O Docker Desktop precisa estar instalado e aberto/rodando na sua máquina (verifique se o ícone na barra de tarefas está ativo).
-- Certifique-se de que o seu arquivo `requirements.txt` utiliza o pacote de ambiente correto (ex: `notebook>=6.5.0`).
+- Mantenha o arquivo `requirements.txt` disponível na raiz do projeto para a instalação das dependências.
 
 ### Passo a passo detalhado para execução
 
@@ -116,10 +118,10 @@ Para garantir a reprodutibilidade exata do ambiente de desenvolvimento, o projet
 
 2. Construa a imagem Docker:
 
-	Abra o seu terminal na pasta raiz do projeto e execute o comando abaixo para compilar a imagem (a flag `--no-cache` garante uma instalação limpa):
+	Abra o seu terminal na pasta raiz do projeto e execute o comando abaixo. O cache da instalação das dependências é reutilizado enquanto `requirements.txt` não mudar. Use `--no-cache` apenas quando precisar reconstruir todas as camadas.
 
 	```bash
-	docker build --no-cache -t tech-challenge-fase1 .
+	docker build -t tech-challenge-fase1 .
 	```
 
 3. Execute o container Docker:
