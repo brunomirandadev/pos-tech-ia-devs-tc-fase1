@@ -175,7 +175,9 @@ docker stop container-tech-challenge
 
 ## 📊 Principais Etapas Desenvolvidas
 
-- **Análise Exploratória de Dados (EDA):** Carregamento, inspeção de nulos/tipos, estatísticas descritivas e matriz de correlação.
-- **Pré-processamento:** Tratamento de dados e divisão robusta entre conjuntos de treino e teste.
-- **Modelagem Preditiva:** Treinamento de algoritmos de classificação supervisionada (Regressão Logística e Árvore de Decisão).
-- **Avaliação e Métricas:** Extração de Acurácia, Recall e F1-Score, seguidas de uma discussão crítica sobre a aplicabilidade clínica da IA (enfatizando o médico sempre como o tomador de decisão final).
+- **Análise Exploratória de Dados (EDA):** Carregamento, inspeção de integridade e tipos, estatísticas descritivas, análise de correlação (heatmap) e distribuições com KDE.
+- **Pré-processamento & Pipelines:** Tratamento de colunas, padronização via `StandardScaler`, prevenção de vazamento de dados (*data leakage*) com `sklearn.pipeline.Pipeline` e divisão estratificada em **Treino (70%)**, **Validação (15%)** e **Teste (15%)**.
+- **Modelagem Preditiva:** Treinamento de algoritmos de classificação supervisionada (Regressão Logística e Árvore de Decisão com controle de profundidade).
+- **Avaliação de Métricas Clínicas:** Extração de Acurácia, Precisão, Recall (Sensibilidade prioritária para minimizar falsos negativos), F1-Score e ROC-AUC no conjunto de teste cego.
+- **Interpretabilidade & SHAP:** Análise de *Feature Importance* tradicional e explicabilidade avançada com **SHAP (*SHapley Additive exPlanations*)**, permitindo auditoria caso a caso pelo patologista.
+- **Diretriz Ética:** Discussão crítica sobre triagem hospitalar, enfatizando que o modelo atua como CDSS e que a palavra final do diagnóstico cabe sempre ao médico especialista.

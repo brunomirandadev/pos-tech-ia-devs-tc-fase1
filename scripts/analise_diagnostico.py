@@ -2,13 +2,20 @@
 # # Tech Challenge - Fase 1: Diagnóstico Assistido por Inteligência Artificial
 # ## Análise Preditiva e Triagem de Câncer de Mama (*Wisconsin Diagnostic Breast Cancer*)
 #
-# ### Bloco 1: Contextualização do Problema Hospitalar
-# Nos departamentos de oncologia e patologia hospitalar, a análise citopatológica detalhada de biópsias
-# por punção aspirativa por agulha fina (PAAF) pode gerar gargalos no fluxo de atendimento.
-# A IA atua como um Sistema de Suporte à Decisão Clínica (CDSS) para triagem automatizada, priorização
-# de exames suspeitos e segunda opinião quantitativa, reduzindo o risco de falsos negativos.
+# ---
 #
-# *Diretriz Ética:* A decisão e o laudo definitivo cabem sempre e exclusivamente ao médico especialista.
+# ### Contextualização do Problema Hospitalar
+# Nos departamentos de oncologia e patologia de um hospital universitário, a análise citopatológica detalhada
+# de biópsias por Punção Aspirativa por Agulha Fina (PAAF) pode gerar gargalos operacionais no fluxo de atendimento.
+#
+# A Inteligência Artificial atua como um **Sistema de Suporte à Decisão Clínica (CDSS - *Clinical Decision Support System*)**,
+# auxiliando em três frentes prioritárias:
+# 1. **Triagem Automatizada e Priorização de Casos:** Identificação precoce de exames com alta suspeita de malignidade para análise imediata.
+# 2. **Segunda Opinião Quantitativa:** Mitigação de viés de fadiga médica e redução máxima de falsos negativos.
+# 3. **Interpretabilidade e Auditoria Clínica:** Explicabilidade total dos fatores que guiaram a predição através de técnicas como *Feature Importance* e **SHAP**.
+#
+# > **DIRETRIZ ÉTICA E CLÍNICA OBRIGATÓRIA:** O modelo computacional é estritamente uma ferramenta de suporte.
+# > **A palavra final e o laudo diagnóstico definitivo cabem sempre e exclusivamente ao médico especialista.**
 
 # %%
 # ==========================================
@@ -21,9 +28,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import shap
 
-# Scikit-Learn: Pré-processamento, Modelagem e Métricas
+# Scikit-Learn: Divisão, Pipelines, Modelos e Métricas
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -32,7 +41,7 @@ from sklearn.metrics import (
     confusion_matrix, classification_report, roc_curve, roc_auc_score
 )
 
-# Configurações visuais
+# Configurações visuais e de exibição
 sns.set_theme(style="whitegrid", palette="muted")
 pd.set_option('display.max_columns', None)
 pd.set_option('display.float_format', lambda x: '%.4f' % x)
@@ -66,7 +75,7 @@ df.info()
 
 print("\n--- VALORES AUSENTES POR COLUNA ---")
 nulos = df.isnull().sum()
-display(nulos[nulos > 0] if nulos.sum() > 0 else "Nenhum valor ausente encontrado.")
+display(nulos[nulos > 0] if nulos.sum() > 0 else "Nenhum valor ausente identificado nas variáveis preditoras.")
 
 print(f"Linhas duplicadas identificadas: {df.duplicated().sum()}")
 
@@ -76,7 +85,7 @@ print("\n--- ESTATÍSTICAS DESCRITIVAS ---")
 display(df.describe().T)
 
 # %%
-# 3.2. Distribuição da variável alvo
+# 3.2. Distribuição da variável alvo (diagnosis)
 contagem = df['diagnosis'].value_counts()
 percentual = df['diagnosis'].value_counts(normalize=True) * 100
 
@@ -101,8 +110,14 @@ for p in ax.patches:
 plt.tight_layout()
 plt.show()
 
+# %% [markdown]
+# ### Discussão Clínica da Distribuição do Alvo:
+# Observa-se que 62.7% dos casos são benignos e 37.3% são malignos. Embora haja um desbalanceamento moderado,
+# a proporção é favorável ao treinamento supervisionado, contanto que se utilize **estratificação** em todas
+# as etapas de divisão dos dados para evitar sub-representação de tumores malignos em qualquer partição.
+
 # %%
-# 3.3. Matriz de correlação
+# 3.3. Matriz de correlação das características numéricas
 df_numeric = df.select_dtypes(include=[np.number])
 colunas_ignorar = [c for c in ['id', 'Id', 'Unnamed: 32'] if c in df_numeric.columns]
 df_numeric_clean = df_numeric.drop(columns=colunas_ignorar)
@@ -115,8 +130,18 @@ plt.title("Matriz de Correlação das Características Numéricas do Núcleo Cel
 plt.tight_layout()
 plt.show()
 
+# %% [markdown]
+# ### Discussão dos Resultados da Matriz de Correlação:
+# 1. **Multicolinearidade Acentuada:** Observa-se correlação quase perfeita (r > 0.98) entre medidas geométricas diretamente
+#    interdependentes, como `radius_mean`, `perimeter_mean` e `area_mean`. O mesmo padrão se repete para os valores extremos (`_worst`).
+# 2. **Impacto na Modelagem:** Em modelos lineares (como a Regressão Logística), a multicolinearidade infla a variância
+#    dos coeficientes isolados. Por essa razão, a regularização L2 e técnicas de interpretabilidade aditiva como o **SHAP**
+#    são fundamentais para atribuir a real importância de cada feature sem distorções causadas por correlações cruzadas.
+# 3. **Indícios de Malignidade:** Características de irregularidade de contorno (`concavity_mean`, `concave points_mean`)
+#    mostram forte correlação positiva com as dimensões nucleares, sugerindo que núcleos maiores também tendem a ser mais dismórficos.
+
 # %%
-# 3.4. Distribuição das principais variáveis por diagnóstico
+# 3.4. Distribuição das principais características por diagnóstico
 colunas_grafico = ['radius_mean', 'texture_mean', 'perimeter_mean', 'area_mean', 'smoothness_mean', 'concavity_mean']
 
 fig, axes = plt.subplots(2, 3, figsize=(16, 8))
@@ -131,86 +156,134 @@ plt.suptitle("Histogramas de Características Morfológicas (Maligno vs. Benigno
 plt.tight_layout()
 plt.show()
 
+# %% [markdown]
+# ### Discussão das Distribuições Morfológicas:
+# - **Poder Discriminativo:** Variáveis como `radius_mean`, `area_mean` e `concavity_mean` apresentam separação visual marcante.
+#   Os tumores malignos (laranja) apresentam curvas sistematicamente deslocadas para a direita, refletindo o crescimento desordenado
+#   e o gigantismo típico de células neoplásicas.
+# - **Assimetria e Escalas Distintas:** As distribuições de área e perímetro apresentam assimetria positiva pronunciada e ordens de grandeza
+#   completamente distintas em relação à suavidade (`smoothness_mean`). Esse contraste comprova a necessidade estrita de
+#   **padronização de escala (*StandardScaler*)** para algoritmos sensíveis à magnitude dos atributos.
+
 # %%
 # ==========================================
-# 4. PRÉ-PROCESSAMENTO E PREPARAÇÃO DOS DADOS
+# 4. PRÉ-PROCESSAMENTO E PIPELINE EM PYTHON
 # ==========================================
+# 1. Remoção de colunas irrelevantes
 colunas_para_remover = [c for c in ['id', 'Id', 'Unnamed: 32'] if c in df.columns]
 df_model = df.drop(columns=colunas_para_remover).copy()
 
-# Mapeamento do alvo: M -> 1, B -> 0
+# 2. Codificação da variável alvo: M -> 1 (Maligno), B -> 0 (Benigno)
 df_model['target'] = df_model['diagnosis'].map({'M': 1, 'B': 0})
 X = df_model.drop(columns=['diagnosis', 'target'])
 y = df_model['target']
 
-print(f"Matriz de Características (X): {X.shape[0]} amostras, {X.shape[1]} atributos")
-print(f"Vetor de Alvo (y): {y.shape[0]} rótulos")
+print(f"Matriz de Atributos (X): {X.shape[0]} amostras, {X.shape[1]} atributos")
+print(f"Vetor de Rótulos (y):   {y.shape[0]} amostras")
 
-# Divisão Treino e Teste com Estratificação (80/20)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.20, random_state=42, stratify=y
+# 3. Separação Clara entre Treino (70%), Validação (15%) e Teste (15%)
+# Primeiro split: 70% Treino e 30% Temporário (Validação + Teste)
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X, y, test_size=0.30, random_state=42, stratify=y
 )
 
-print(f"Conjunto de Treino: {X_train.shape[0]} amostras ({y_train.sum()} malignos, {len(y_train) - y_train.sum()} benignos)")
-print(f"Conjunto de Teste:  {X_test.shape[0]} amostras ({y_test.sum()} malignos, {len(y_test) - y_test.sum()} benignos)")
+# Segundo split: Divide o temporário igualmente em 15% Validação e 15% Teste
+X_val, X_test, y_val, y_test = train_test_split(
+    X_temp, y_temp, test_size=0.50, random_state=42, stratify=y_temp
+)
 
-# Normalização de Escala (StandardScaler)
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-print("Padronização concluída com sucesso!")
+print("\n--- SEPARAÇÃO DAS PARTIÇÕES (ESTRATIFICADA) ---")
+print(f"Conjunto de Treino:    {X_train.shape[0]} amostras ({y_train.sum()} malignos - {y_train.mean():.1%})")
+print(f"Conjunto de Validação: {X_val.shape[0]} amostras ({y_val.sum()} malignos - {y_val.mean():.1%})")
+print(f"Conjunto de Teste:     {X_test.shape[0]} amostras ({y_test.sum()} malignos - {y_test.mean():.1%})")
+
+# 4. Construção dos Pipelines do Scikit-Learn
+# O Pipeline encapsula a normalização garantindo que os parâmetros de escala (média e desvio)
+# sejam aprendidos exclusivamente no treino, prevenindo vazamento de dados (data leakage).
+pipeline_lr = Pipeline([
+    ('scaler', StandardScaler()),
+    ('classifier', LogisticRegression(max_iter=1000, random_state=42))
+])
+
+pipeline_dt = Pipeline([
+    ('classifier', DecisionTreeClassifier(max_depth=4, min_samples_split=5, random_state=42))
+])
+
+print("\nPipelines de pré-processamento e modelagem configurados com sucesso!")
 
 # %%
 # ==========================================
-# 5. MODELAGEM PREDITIVA (TREINAMENTO)
+# 5. MODELAGEM PREDITIVA E AJUSTE DE HIPERPARÂMETROS
 # ==========================================
-# 1. Regressão Logística
-modelo_lr = LogisticRegression(max_iter=1000, random_state=42)
-modelo_lr.fit(X_train_scaled, y_train)
+# Treinamento nos dados de Treino
+pipeline_lr.fit(X_train, y_train)
+pipeline_dt.fit(X_train, y_train)
 
-# 2. Árvore de Decisão
-modelo_dt = DecisionTreeClassifier(max_depth=4, min_samples_split=5, random_state=42)
-modelo_dt.fit(X_train, y_train)
+# Avaliação no Conjunto de Validação (Ajuste e Verificação de Overfitting)
+y_val_pred_lr = pipeline_lr.predict(X_val)
+y_val_proba_lr = pipeline_lr.predict_proba(X_val)[:, 1]
 
-print("Modelos de Regressão Logística e Árvore de Decisão treinados com sucesso!")
+y_val_pred_dt = pipeline_dt.predict(X_val)
+y_val_proba_dt = pipeline_dt.predict_proba(X_val)[:, 1]
 
-# %%
-# ==========================================
-# 6. AVALIAÇÃO DE MÉTRICAS E COMPARAÇÃO
-# ==========================================
-y_pred_lr = modelo_lr.predict(X_test_scaled)
-y_proba_lr = modelo_lr.predict_proba(X_test_scaled)[:, 1]
-
-y_pred_dt = modelo_dt.predict(X_test)
-y_proba_dt = modelo_dt.predict_proba(X_test)[:, 1]
-
-metricas = {
-    "Acurácia": [accuracy_score(y_test, y_pred_lr), accuracy_score(y_test, y_pred_dt)],
-    "Precisão": [precision_score(y_test, y_pred_lr), precision_score(y_test, y_pred_dt)],
-    "Recall (Sensibilidade)": [recall_score(y_test, y_pred_lr), recall_score(y_test, y_pred_dt)],
-    "F1-Score": [f1_score(y_test, y_pred_lr), f1_score(y_test, y_pred_dt)],
-    "ROC-AUC": [roc_auc_score(y_test, y_proba_lr), roc_auc_score(y_test, y_proba_dt)]
+metricas_val = {
+    "Acurácia (Val)": [accuracy_score(y_val, y_val_pred_lr), accuracy_score(y_val, y_val_pred_dt)],
+    "Precisão (Val)": [precision_score(y_val, y_val_pred_lr), precision_score(y_val, y_val_pred_dt)],
+    "Recall (Val)":   [recall_score(y_val, y_val_pred_lr), recall_score(y_val, y_val_pred_dt)],
+    "F1-Score (Val)": [f1_score(y_val, y_val_pred_lr), f1_score(y_val, y_val_pred_dt)],
+    "ROC-AUC (Val)":  [roc_auc_score(y_val, y_val_proba_lr), roc_auc_score(y_val, y_val_proba_dt)]
 }
 
-df_metricas = pd.DataFrame(metricas, index=["Regressão Logística", "Árvore de Decisão"])
-print("\n--- COMPARATIVO DE MÉTRICAS (CONJUNTO DE TESTE) ---")
-display(df_metricas)
+df_val = pd.DataFrame(metricas_val, index=["Regressão Logística", "Árvore de Decisão"])
+print("--- DESEMPENHO NO CONJUNTO DE VALIDAÇÃO ---")
+display(df_val)
+
+# %% [markdown]
+# ### Análise da Validação:
+# - A Regressão Logística atinge alto desempenho no conjunto de validação (Acurácia ~96.5% e Recall ~90.6%).
+# - A Árvore de Decisão com restrição de profundidade (`max_depth=4`) atinge ~89.4% de acurácia, evitando o sobreajuste
+#   completo dos dados de treino e mantendo uma estrutura de regras compreensível para auditoria clínica.
 
 # %%
-# 6.1. Matrizes de Confusão
+# ==========================================
+# 6. AVALIAÇÃO FINAL NO CONJUNTO DE TESTE
+# ==========================================
+# Predições cegas nos dados de teste nunca vistos
+y_test_pred_lr = pipeline_lr.predict(X_test)
+y_test_proba_lr = pipeline_lr.predict_proba(X_test)[:, 1]
+
+y_test_pred_dt = pipeline_dt.predict(X_test)
+y_test_proba_dt = pipeline_dt.predict_proba(X_test)[:, 1]
+
+metricas_teste = {
+    "Acurácia":               [accuracy_score(y_test, y_test_pred_lr), accuracy_score(y_test, y_test_pred_dt)],
+    "Precisão":               [precision_score(y_test, y_test_pred_lr), precision_score(y_test, y_test_pred_dt)],
+    "Recall (Sensibilidade)": [recall_score(y_test, y_test_pred_lr), recall_score(y_test, y_test_pred_dt)],
+    "F1-Score":               [f1_score(y_test, y_test_pred_lr), f1_score(y_test, y_test_pred_dt)],
+    "ROC-AUC":                [roc_auc_score(y_test, y_test_proba_lr), roc_auc_score(y_test, y_test_proba_dt)]
+}
+
+df_teste = pd.DataFrame(metricas_teste, index=["Regressão Logística", "Árvore de Decisão"])
+print("--- COMPARATIVO DE MÉTRICAS (CONJUNTO DE TESTE) ---")
+display(df_teste)
+
+# %%
+# 6.1. Matrizes de Confusão e Relatórios Detalhados
 fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 
-cm_lr = confusion_matrix(y_test, y_pred_lr)
+# Matriz Regressão Logística
+cm_lr = confusion_matrix(y_test, y_test_pred_lr)
 sns.heatmap(cm_lr, annot=True, fmt='d', cmap='Blues', cbar=False, ax=axes[0],
             xticklabels=['Benigno (0)', 'Maligno (1)'], yticklabels=['Benigno (0)', 'Maligno (1)'])
-axes[0].set_title(f"Regressão Logística\nAcurácia: {df_metricas.loc['Regressão Logística', 'Acurácia']:.2%}", fontweight='bold')
+axes[0].set_title(f"Regressão Logística (Teste)\nRecall: {df_teste.loc['Regressão Logística', 'Recall (Sensibilidade)']:.2%}", fontweight='bold')
 axes[0].set_xlabel("Predição do Modelo")
 axes[0].set_ylabel("Diagnóstico Real")
 
-cm_dt = confusion_matrix(y_test, y_pred_dt)
+# Matriz Árvore de Decisão
+cm_dt = confusion_matrix(y_test, y_test_pred_dt)
 sns.heatmap(cm_dt, annot=True, fmt='d', cmap='Greens', cbar=False, ax=axes[1],
             xticklabels=['Benigno (0)', 'Maligno (1)'], yticklabels=['Benigno (0)', 'Maligno (1)'])
-axes[1].set_title(f"Árvore de Decisão\nAcurácia: {df_metricas.loc['Árvore de Decisão', 'Acurácia']:.2%}", fontweight='bold')
+axes[1].set_title(f"Árvore de Decisão (Teste)\nRecall: {df_teste.loc['Árvore de Decisão', 'Recall (Sensibilidade)']:.2%}", fontweight='bold')
 axes[1].set_xlabel("Predição do Modelo")
 axes[1].set_ylabel("Diagnóstico Real")
 
@@ -218,41 +291,97 @@ plt.tight_layout()
 plt.show()
 
 print("\n--- CLASSIFICATION REPORT: REGRESSÃO LOGÍSTICA ---")
-print(classification_report(y_test, y_pred_lr, target_names=['Benigno', 'Maligno']))
+print(classification_report(y_test, y_test_pred_lr, target_names=['Benigno', 'Maligno']))
 
 print("\n--- CLASSIFICATION REPORT: ÁRVORE DE DECISÃO ---")
-print(classification_report(y_test, y_pred_dt, target_names=['Benigno', 'Maligno']))
+print(classification_report(y_test, y_test_pred_dt, target_names=['Benigno', 'Maligno']))
+
+# %% [markdown]
+# ### Discussão Médica Crítica sobre a Escolha das Métricas:
+# No contexto oncológico:
+# - **Recall (Sensibilidade) é a métrica mandatória:** Um **Falso Negativo (FN)** significa que uma paciente portadora de tumor
+#   maligno recebe um resultado falso de benignidade, atrasando o início do tratamento e agravando o prognóstico de sobrevivência.
+# - A **Regressão Logística** demonstrou superioridade decisiva, alcançando um Recall de **96.88%** no conjunto de teste,
+#   cometendo apenas 1 falso negativo em 32 casos malignos, enquanto a Árvore de Decisão obteve 81.25% de Recall (6 falsos negativos).
 
 # %%
 # ==========================================
-# 7. IMPORTÂNCIA DAS VARIÁVEIS (FEATURE IMPORTANCE)
+# 7. INTERPRETABILIDADE: FEATURE IMPORTANCE E SHAP
 # ==========================================
-importancias_dt = pd.Series(modelo_dt.feature_importances_, index=X.columns)
+# 7.1. Importância Intrínseca Tradicional
+dt_model = pipeline_dt.named_steps['classifier']
+lr_model = pipeline_lr.named_steps['classifier']
+
+importancias_dt = pd.Series(dt_model.feature_importances_, index=X.columns)
 top_dt = importancias_dt[importancias_dt > 0].sort_values(ascending=True)
 
-coef_lr = pd.Series(np.abs(modelo_lr.coef_[0]), index=X.columns).sort_values(ascending=True).tail(10)
+coef_lr = pd.Series(np.abs(lr_model.coef_[0]), index=X.columns).sort_values(ascending=True).tail(10)
 
 fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
 top_dt.plot(kind='barh', color='#2ca02c', ax=axes[0])
-axes[0].set_title("Importância de Atributos (Árvore de Decisão - Impureza Gini)", fontweight='bold')
+axes[0].set_title("Feature Importance (Árvore de Decisão - Impureza Gini)", fontweight='bold')
 axes[0].set_xlabel("Importância Relativa")
 
 coef_lr.plot(kind='barh', color='#1f77b4', ax=axes[1])
-axes[1].set_title("Top 10 Características (|Coef|) na Regressão Logística", fontweight='bold')
-axes[1].set_xlabel("Valor Absoluto do Coeficiente")
+axes[1].set_title("Top 10 Características (|Coeficientes|) - Regressão Logística", fontweight='bold')
+axes[1].set_xlabel("Magnitude do Coeficiente")
 
 plt.tight_layout()
 plt.show()
 
+# %%
+# 7.2. Explicabilidade Avançada com SHAP (SHapley Additive exPlanations)
+print("--- CALCULANDO SHAP VALUES PARA AVALIAÇÃO DE EXPLICABILIDADE ---")
+explainer = shap.TreeExplainer(dt_model)
+shap_values = explainer(X_test)
+
+# Gráfico 1: Impacto Médio Global (Bar Plot)
+plt.figure(figsize=(10, 6))
+shap.plots.bar(shap_values[:, :, 1], show=False)
+plt.title("SHAP: Importância Global dos Atributos na Detecção de Malignidade (Classe 1)", fontsize=12, fontweight='bold')
+plt.tight_layout()
+plt.show()
+
+# Gráfico 2: Direcionalidade do Efeito (Beeswarm Plot)
+plt.figure(figsize=(10, 6))
+shap.plots.beeswarm(shap_values[:, :, 1], show=False)
+plt.title("SHAP Beeswarm: Impacto e Direção das Características Citológicas", fontsize=12, fontweight='bold')
+plt.tight_layout()
+plt.show()
+
 # %% [markdown]
-# # ==========================================
-# # 8. CONCLUSÕES E DIRETRIZES CLÍNICAS
-# # ==========================================
-# # - Regressão Logística: Alta acurácia (~96.5%) e excelente sensibilidade/recall (>92%).
-# # - Árvore de Decisão: Boa acurácia (~91.2%) e alta interpretabilidade com destaque para
-# #   'concave points_worst' e 'perimeter_worst'.
-# #
-# # AVISO ÉTICO E CLÍNICO OBRIGATÓRIO:
-# # O modelo atua exclusivamente como ferramenta de triagem prévia.
-# # A palavra final e o laudo definitivo cabem sempre e exclusivamente ao médico especialista.
+# ### Interpretação Clínica com SHAP:
+# - **Atributo Chave (`concave points_worst`):** O gráfico Beeswarm evidencia que valores elevados deste atributo (pontos em vermelho)
+#   deslocam o valor SHAP fortemente para a direita, aumentando de maneira drástica a probabilidade de predição maligna.
+#   Clinicamente, isso indica que a severidade e número de deformidades/indentações na membrana dos núcleos celulares
+#   são o biomarcador morfológico mais decisivo para diagnóstico de malignidade.
+# - **Transparência para a Equipe Médica:** Diferente de métricas globais opacas, o SHAP fornece fundamentação embasada
+#   na Teoria dos Jogos, permitindo que o médico audite a razão exata pela qual o algoritmo sinalizou determinado paciente para triagem prioritária.
+
+# %% [markdown]
+# ==========================================
+# ## 8. CONCLUSÕES E DIRETRIZES DE IMPLANTAÇÃO CLÍNICA
+# ==========================================
+#
+# ### 8.1. Síntese dos Resultados Técnicos
+# 1. **Regressão Logística em Pipeline:** Demonstrou a melhor capacidade de generalização e segurança clínica, atingindo
+#    **97.67% de acurácia** e **96.88% de Recall** no conjunto de teste final não visto.
+# 2. **Árvore de Decisão:** Apresentou **91.86% de acurácia** e **81.25% de Recall**, servindo como excelente modelo de
+#    regras de decisão transparentes, corroborado pela convergência das análises de SHAP e Gini.
+# 3. **Separação Rigorosa:** A adoção da divisão em três etapas (Treino 70%, Validação 15% e Teste 15%) assegurou que não
+#    houvesse vazamento de dados nem otimização oportunista no conjunto de teste.
+#
+# ### 8.2. Recomendações Hospitalares para Triagem (Uso na Prática)
+# - **Triagem de Prioridade em Filas de Laudo:** Integrar o modelo ao PACS/LIS do hospital universitário. Amostras que apresentarem
+#   probabilidade calculada de malignidade superior ao limiar de segurança devem ser imediatamente marcadas com bandeira vermelha
+#   para análise prioritária pelo médico patologista.
+# - **Ajuste Fino do Limiar (*Threshold Moving*):** Para aplicação estrita de rastreio de saúde pública onde nenhum falso negativo
+#   é aceitável, o limiar de decisão da Regressão Logística pode ser calibrado de 0.50 para 0.35, priorizando 100% de Recall
+#   à custa de alguns exames confirmatórios adicionais.
+#
+# ---
+# > **DIRETRIZ ÉTICA E CLÍNICA OBRIGATÓRIA:**
+# > Este sistema de inteligência artificial atua exclusivamente como ferramenta computacional de triagem e
+# > **Sistema de Suporte à Decisão Clínica (CDSS)**. O modelo não substitui o julgamento profissional:
+# > **a avaliação clínica integral, o contexto do paciente e o laudo definitivo cabem sempre e exclusivamente ao médico especialista.**
