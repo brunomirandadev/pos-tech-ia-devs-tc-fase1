@@ -6,3 +6,4 @@ seaborn==0.13.2
 notebook==7.6.3
 ipykernel==7.4.0
 shap==0.54.1
+reportlab==5.1.0

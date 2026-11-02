@@ -10,11 +10,11 @@
 
 ---
 
-Oi, tudo bem? Meu nome é [SEU NOME], e hoje vou compartilhar uma solução de inteligência artificial que desenvolvemos para um hospital.
+Oi, tudo bem? Meu nome é Bruno Miranda, e hoje vou compartilhar uma solução de inteligência artificial que desenvolvemos para um hospital.
 
 [PAUSA 2 seg]
 
-O desafio é simples: hospitais têm cada vez mais pacientes, mais exames de mamografia para detectar câncer de mama. Patologistas ficam sobrecarregados, as filas crescem... e quanto maior a espera, pior o prognóstico do paciente se for descoberto um câncer.
+O desafio: hospitais têm cada vez mais pacientes, mais exames de mamografia para detectar câncer de mama. Médicos Patologistas ficam sobrecarregados, as filas crescem... e quanto maior a espera, pior o prognóstico do paciente se for descoberto um câncer.
 
 [PAUSA 2 seg]
 
@@ -38,37 +38,41 @@ Vamos começar pelos dados que usamos para treinar essa IA.
 
 [MOSTRAR DO NOTEBOOK: Célula de Distribuição do Alvo - gráfico com histograma 63% benigno, 37% maligno]
 
+![Distribuição da classe alvo](../tech_challenge/imagens/01_distribuicao_alvo.png)
+
 Aqui temos uma base de 569 amostras de exames de mama. Você vê:
 - **63% foram diagnosticados como benignos** — a maioria é segura
 - **37% foram diagnosticados como malignos** — esses são os casos críticos que precisamos detectar
 
 [PAUSA 2 seg]
 
-Cada uma dessas 569 amostras tem **32 números** que descrevem as características da célula. São medidas como:
-- **Raio do núcleo** — o tamanho da célula
+Cada uma dessas 569 amostras está organizada em **32 colunas**. Dessas, **30 são medidas numéricas** das características do núcleo celular; as outras duas indicam o identificador da amostra e o diagnóstico. Entre as medidas, temos:
+- **Raio do núcleo** — uma medida do tamanho do núcleo
 - **Área** — quanto espaço ocupa
-- **Concavidade** — o quanto o contorno é irregular
-- **Textura** — se a aparência é uniforme ou caótica
+- **Concavidade** — o quanto o contorno apresenta reentrâncias
+- **Textura** — a variação dos tons de cinza na imagem do núcleo
 
 [PAUSA 2 seg]
 
-[MOSTRAR DO NOTEBOOK: Célula de Distribuições Morfológicas - 3 histogramas lado a lado mostrando Raio, Concavidade e Textura]
+[MOSTRAR DO NOTEBOOK: Célula de Distribuições Morfológicas - 6 histogramas em duas linhas, comparando características dos núcleos]
+
+![Distribuições morfológicas: raio, textura, perímetro, área, suavidade e concavidade](../tech_challenge/imagens/03_distribuicoes_morfologicas.png)
 
 Agora observe este gráfico muito importante.
 
 [PAUSA 2 seg]
 
-À esquerda e no meio, você vê dois histogramas sobrepostos: **azul é benigno, laranja é maligno**. Vou dar alguns exemplos:
+Cada painel compara a distribuição de uma característica: **azul representa amostras benignas e laranja, malignas**. A ordem é da esquerda para a direita, primeiro na linha de cima e depois na de baixo:
 
-Primeiro painel: **Raio do núcleo**. Vejo que os núcleos malignos (laranja) estão **deslocados para a direita** — eles são maiores. Isso faz sentido biologicamente: cânceres crescem mais.
+Na linha de cima estão **raio médio** (*radius_mean*), **textura média** (*texture_mean*) e **perímetro médio** (*perimeter_mean*). Na linha de baixo estão **área média** (*area_mean*), **suavidade média** (*smoothness_mean*) e **concavidade média** (*concavity_mean*).
 
-Segundo painel: **Concavidade** — o quanto o contorno é indentado. Novamente, maligno está à direita: núcleos cancerosos têm **contornos muito mais irregulares e indentados**.
+O **raio** mede o tamanho do núcleo; a **textura** indica a variação dos tons de cinza; e a **concavidade** mede as reentrâncias do contorno. Em vários painéis, as distribuições laranja aparecem deslocadas para valores maiores, mas há sobreposição entre os grupos.
 
-Terceiro painel: **Textura** — malignos estão dispersos, variáveis, caóticos. Benignos são mais uniformes.
+Isso significa que essas medidas ajudam o modelo a diferenciar os grupos quando consideradas em conjunto. Nenhum painel, sozinho, determina um diagnóstico.
 
 [PAUSA 3 seg]
 
-**Ponto-chave:** A IA vai aprender que valores altos de raio, concavidade e irregularidade de textura indicam câncer. Valores baixos indicam segurança.
+**Ponto-chave:** O modelo combina várias características morfológicas para estimar a classe. As distribuições mostram tendências nos dados, não uma regra isolada para diagnosticar um paciente.
 
 [PAUSA 2 seg]
 
@@ -81,6 +85,14 @@ Terceiro painel: **Textura** — malignos estão dispersos, variáveis, caótico
 Antes de treinar qualquer IA, precisamos separar os dados.
 
 [PAUSA 2 seg]
+
+[MOSTRAR DO NOTEBOOK: saída da célula de divisão dos dados, com 398 amostras para treino, 85 para validação e 86 para teste]
+
+| Conjunto | Percentual | Amostras |
+|---|---:|---:|
+| Treino | 70% | 398 |
+| Validação | 15% | 85 |
+| Teste | 15% | 86 |
 
 Fizemos assim:
 - **70% dos dados (398 amostras) → Treino**: o modelo aprende os padrões aqui
@@ -95,37 +107,44 @@ Por que essa separação? Porque se você treinar e testar com os mesmos dados, 
 
 Treinamos **dois modelos diferentes**:
 
-[FALAR NÚMEROS DA TABELA - sem gráfico]
+[MOSTRAR DO NOTEBOOK: tabela "COMPARATIVO DE MÉTRICAS (CONJUNTO DE TESTE)"; não confundir com a tabela anterior, que é do conjunto de validação]
+
+| Modelo | Acurácia | Precisão | Recall (Sensibilidade) | F1-Score | ROC-AUC |
+|---|---:|---:|---:|---:|---:|
+| Regressão Logística | 0,9767 | 0,9688 | 0,9688 | 0,9688 | 0,9988 |
+| Árvore de Decisão | 0,9186 | 0,9630 | 0,8125 | 0,8814 | 0,9413 |
+
+Os valores da tabela estão em escala de 0 a 1. Em porcentagem, a acurácia da Regressão Logística é 97,67%, por exemplo. Enquanto a tabela estiver na tela, compare acurácia, recall e precisão dos dois modelos. Na fala, podemos arredondar os valores:
 
 **Primeiro: Regressão Logística**
-- Acurácia: 98%
-- Recall (Sensibilidade): 97% para malignos
-- Precisão: 97% (quando prevê maligno, acerta 97% das vezes)
+- Acurácia: aproximadamente 98%
+- Recall (Sensibilidade): aproximadamente 97% para malignos
+- Precisão: aproximadamente 97% (quando prevê maligno, acerta cerca de 97% das vezes)
 
 **Segundo: Árvore de Decisão**
-- Acurácia: 92%
-- Recall para malignos: 81%
-- Precisão: 96% (quando prevê maligno, acerta 96% das vezes)
+- Acurácia: aproximadamente 92%
+- Recall para malignos: aproximadamente 81%
+- Precisão: aproximadamente 96% (quando prevê maligno, acerta cerca de 96% das vezes)
 
 [PAUSA 2 seg]
 
 O que isso significa?
 
-A **Regressão Logística acertou 98%** dos 86 casos de teste — apenas 2 erros em 86 exames.
+A **Regressão Logística acertou cerca de 98%** dos 86 casos de teste — 84 acertos e 2 erros no total. Entre os 32 casos malignos, deixou passar 1.
 
-A **Árvore de Decisão é mais conservadora**: detecta 81% dos cânceres de forma segura, mas deixa passar alguns casos (false negatives), e acerta 92% no geral.
+A **Árvore de Decisão** acertou cerca de 92% dos casos e identificou aproximadamente 81% dos malignos; entre os 32 casos malignos, deixou passar 6.
 
 [PAUSA 2 seg]
 
 Para produção hospitalar, escolhemos a **Regressão Logística** porque:
 1. Tem a melhor acurácia geral: 98%
 2. Detecta 97% dos cânceres — confiável para o cenário médico
-3. Comete apenas 3% de falsos positivos — médicos não perdem tempo com alarmes falsos desnecessários
+3. Tem precisão de aproximadamente 97%: entre as amostras sinalizadas como malignas, cerca de 97% eram malignas
 4. É mais equilibrada e interpretável
 
 [PAUSA 2 seg]
 
-**Número crítico:** De 86 exames de teste, apenas **2 cânceres não foram detectados**. Isso representa 97% de sensibilidade — a IA é extremamente confiável para identificar os casos reais de câncer.
+**Número crítico:** No conjunto de teste, a Regressão Logística deixou passar **1 dos 32 casos malignos**, equivalente a 96,88% de sensibilidade. Esse resultado é promissor, mas o modelo é uma ferramenta de apoio e não substitui a avaliação médica.
 
 [PAUSA 3 seg]
 
@@ -151,29 +170,27 @@ Um problema comum com inteligência artificial é: "Como eu sei em que o modelo 
 
 ### **3.1 - QUAIS SÃO AS FEATURES MAIS IMPORTANTES?**
 
-[MOSTRAR DO NOTEBOOK: Célula de Feature Importance - gráfico de barras com ranking das características]
+[MOSTRAR DO NOTEBOOK: Célula de Feature Importance - os dois gráficos lado a lado: importância da Árvore de Decisão e coeficientes da Regressão Logística]
 
-Este gráfico mostra um ranking: quais características o modelo mais usa para tomar decisão.
+![Importância das características: Árvore de Decisão e Regressão Logística](../tech_challenge/imagens/05_feature_importance.png)
 
-[PAUSA 2 seg]
-
-As top 3:
-
-**1️⃣ Concave Points Worst** — o número de pontos côncavos (indentações) no contorno do núcleo
-- Quanto mais indentações, mais provável ser maligno
-- Faz sentido: cânceres têm bordas muito irregulares
-
-**2️⃣ Radius Worst** — o raio máximo do núcleo
-- Núcleos maiores = mais provável ser maligno
-- Também faz sentido: cânceres crescem mais
-
-**3️⃣ Texture Worst** — variação de cinza-escuro na imagem
-- Cânceres têm textura caótica e irregular
-- Benignos têm aparência mais uniforme
+Esta figura compara os rankings de características dos dois modelos. À esquerda está a importância da Árvore de Decisão, calculada pela Impureza Gini. À direita estão os valores absolutos dos coeficientes da Regressão Logística.
 
 [PAUSA 2 seg]
 
-**Insight importante:** O modelo está usando **características biológicas reais** que patologistas também usam. Não é uma "caixa preta" mágica — é lógica médica traduzida em números.
+No gráfico da Árvore de Decisão, destaque:
+
+**1. `perimeter_worst`** — maior perímetro observado do núcleo; é a característica de maior importância nesse modelo.
+
+**2. `concave points_worst`** — maior número de pontos côncavos no contorno.
+
+**3. `texture_worst`** — medida de textura do núcleo.
+
+No gráfico da Regressão Logística, as maiores magnitudes são `texture_worst`, `radius_se` e `symmetry_worst`. Como o gráfico mostra valores absolutos, ele indica a magnitude dos coeficientes, mas não se cada característica empurra a previsão para benigno ou maligno.
+
+[PAUSA 2 seg]
+
+**Insight importante:** Os modelos podem priorizar características diferentes. Esses gráficos mostram a importância ou magnitude no modelo; o sentido da contribuição para cada previsão será explicado com o SHAP nos próximos gráficos.
 
 [PAUSA 3 seg]
 
@@ -182,6 +199,8 @@ As top 3:
 ### **3.2 - O GRÁFICO BEESWARM: VISÃO GLOBAL**
 
 [MOSTRAR DO NOTEBOOK: Célula SHAP Beeswarm Plot - gráfico mostrando padrão de explicações]
+
+![Gráfico SHAP Beeswarm](../tech_challenge/imagens/07_shap_beeswarm.png)
 
 Este é o gráfico SHAP mais importante. Deixa eu explicar:
 
@@ -197,67 +216,71 @@ Este é o gráfico SHAP mais importante. Deixa eu explicar:
 
 [PAUSA 2 seg]
 
-Agora observe o padrão:
-
-Para **"Concave Points Worst"** (primeira linha):
-- Todos os **pontos vermelhos estão à direita** — pacientes com muitos pontos côncavos são classificados como malignos
-- Os **pontos azuis estão à esquerda** — pacientes com poucos pontos côncavos são benignos
-- O padrão é **cristalino e consistente**
+Observe a ordem das linhas: **`texture_worst` aparece em primeiro**, seguida por **`radius_se`**, `radius_worst`, `area_worst` e `symmetry_worst`. As cores indicam o valor da característica, e a posição horizontal mostra a direção e a magnitude da contribuição para a saída da Regressão Logística.
 
 [PAUSA 2 seg]
 
-Para **"Radius Worst"** (segunda linha):
-- Novamente, vermelho = grande raio = empurra para maligno
-- Azul = pequeno raio = empurra para benigno
+Para `texture_worst`, valores altos aparecem frequentemente com contribuições positivas para a classe maligna; valores baixos tendem a ficar mais próximos ou à esquerda de zero. Há variação entre as amostras, então isso descreve tendências aprendidas pelo modelo, não uma regra diagnóstica nem uma relação causal.
 
 [PAUSA 2 seg]
 
-**O que isso prova?**
-
-O modelo aprendeu regras que fazem sentido médico. Não é aleatório. A IA de fato compreendeu que características específicas do câncer levam a diagnósticos mais precisos.
+**Ponto-chave:** O SHAP ajuda a inspecionar como as características influenciam as previsões do modelo no conjunto de teste. A interpretação continua dependendo da avaliação clínica.
 
 [PAUSA 3 seg]
 
 ---
 
-### **3.3 - EXEMPLOS INDIVIDUAIS: PACIENTE POR PACIENTE**
+### **3.3 - SHAP BAR PLOT: IMPORTÂNCIA GLOBAL**
 
 [PAUSA 2 seg]
 
-Agora vou mostrar dois exemplos reais — como o modelo explica sua decisão para pacientes específicos.
+Agora vou mostrar o resumo da magnitude média das contribuições SHAP da Regressão Logística no conjunto de teste.
 
 [PAUSA 2 seg]
 
-[MOSTRAR DO NOTEBOOK: Célula SHAP Summary Bar Plot - explicação individual para pacientes]
+[MOSTRAR DO NOTEBOOK: Célula SHAP Bar Plot - importância global da Regressão Logística]
 
-**Exemplos Individuais: Como o SHAP Explica Cada Diagnóstico**
+![SHAP Bar Plot global da Regressão Logística](../tech_challenge/imagens/06_shap_summary_bar.png)
 
-O gráfico SHAP Summary Bar mostra, para cada paciente:
-- Quais características "votaram" para maligno (lado direito, em vermelho)
-- Quais características "votaram" para benigno (lado esquerdo, em azul)
-- A magnitude de cada voto (tamanho da barra)
+Neste gráfico, `texture_worst` tem a maior magnitude média, seguida por `radius_se`, `radius_worst`, `area_worst` e `symmetry_worst`. Como é uma visão global, ele não explica sozinho a previsão de um paciente específico.
 
-[PAUSA 2 seg]
-
-**Para um paciente COM CÂNCER:**
-
-Você veria um padrão muito claro: todas as setas vermelhas apontando para a direita. Concavidade alta, raio grande, textura caótica — tudo grita "MALIGNO". A confiança é 97-98%.
+### **3.4 - SHAP WATERFALL: EXEMPLOS LOCAIS**
 
 [PAUSA 2 seg]
 
-**Para um paciente SEM CÂNCER:**
+Agora vou mostrar como as características contribuíram para a saída do modelo em dois exemplos corretamente classificados do conjunto de teste.
 
-Padrão oposto: setas azuis apontando para a esquerda. Concavidade baixa, raio pequeno, textura uniforme — tudo indica "BENIGNO". A confiança é 98-99%.
+[PAUSA 2 seg]
+
+[MOSTRAR DO NOTEBOOK: Célula SHAP - waterfall do caso maligno corretamente classificado]
+
+![Waterfall SHAP local do caso maligno](../tech_challenge/imagens/08_shap_local_maligno.png)
+
+Neste caso, a probabilidade estimada de malignidade é **53,1%**. Cada barra mostra quanto uma característica, em relação ao valor médio de referência, aumenta ou reduz a saída do modelo.
+
+As barras vermelhas empurram a saída para maligno; as azuis, para benigno. Os valores das características à esquerda estão padronizados, e as contribuições se somam na escala de **log-odds**, não diretamente em porcentagens.
+
+[PAUSA 2 seg]
+
+Agora compare com um caso benigno, também corretamente classificado.
+
+[MOSTRAR DO NOTEBOOK: Célula SHAP - waterfall do caso benigno corretamente classificado]
+
+![Waterfall SHAP local do caso benigno](../tech_challenge/imagens/09_shap_local_benigno.png)
+
+Aqui, a probabilidade estimada de malignidade é **24,4%**. Observe como as contribuições das características se combinam para produzir a saída final do modelo.
+
+[PAUSA 2 seg]
+
+Esses exemplos ajudam a inspecionar as previsões, mas são ilustrativos e não substituem a avaliação médica nem representam, sozinhos, o desempenho geral do modelo.
 
 [PAUSA 2 seg]
 
 [MOSTRAR DO NOTEBOOK: Célula de Matrizes de Confusão - confusion matrices dos dois modelos]
 
-**Por que isso é revolucionário?**
+![Matrizes de confusão dos modelos](../tech_challenge/imagens/04_matrizes_confusao.png)
 
-Imagine o patologista vendo essas explicações. Ele não precisa confiar cegamente. Ele vê: "A IA disse câncer porque encontrou muitos pontos côncavos e núcleo grande — exatamente o que eu também observo no microscópio."
-
-A confiança no sistema cresce exponencialmente.
+As matrizes de confusão mostram acertos e erros de cada modelo, incluindo falsos negativos e falsos positivos. Em conjunto com as explicações SHAP globais, ajudam a avaliar o comportamento do sistema; não substituem a revisão clínica de cada caso.
 
 [PAUSA 3 seg]
 
@@ -283,7 +306,7 @@ Tudo bem, a IA funciona bem. Mas como um hospital realmente usa isso?
 
 **Ganhos práticos:**
 - ✅ Casos críticos são priorizados — reduz tempo de espera
-- ✅ Reduz risco de um câncer cair nas gotas
+- ✅ Ajuda a reduzir o risco de casos de câncer passarem despercebidos na triagem
 - ✅ Médico ganha velocidade sem perder segurança
 - ✅ Sistema é totalmente auditável
 
@@ -291,7 +314,7 @@ Tudo bem, a IA funciona bem. Mas como um hospital realmente usa isso?
 
 **E se precisarmos ser mais conservadores?**
 
-Se o hospital quiser tolerância *zero* a falsos negativos — ou seja, **detectar absolutamente todos os cânceres mesmo que custar mais falsos alarmes** — podemos baixar o threshold de 0.50 para 0.35. Isso aumenta recall para 100%.
+Se o hospital quiser priorizar a sensibilidade, o limiar de decisão pode ser ajustado. Esse valor precisa ser escolhido com dados de validação, considerando o aumento de falsos positivos, e o resultado final deve ser confirmado no conjunto de teste. Neste projeto, não avaliamos um limiar alternativo.
 
 [PAUSA 2 seg]
 
@@ -334,7 +357,7 @@ Obrigado por acompanhar. Dúvidas? Vou ficando por aqui!
 | Item | Recomendação |
 |------|--------------|
 | **Velocidade** | Fale em ritmo natural, não apressado |
-| **Ênfase** | Acentue números: "97.7%", "apenas 3 erros", "97% de confiança" |
+| **Ênfase** | Acentue números: "97,67% de acurácia", "2 erros no total, incluindo 1 caso maligno não detectado", "96,88% de recall" |
 | **Pausa** | Após cada [PAUSA X seg], deixe exatamente aquele tempo de silêncio |
 | **Respiração** | Respire entre blocos, não durante uma frase |
 | **Gestos** | Aponte para gráficos quando disser [MOSTRAR GRÁFICO] |
@@ -343,22 +366,24 @@ Obrigado por acompanhar. Dúvidas? Vou ficando por aqui!
 
 ---
 
-## 📊 GRÁFICOS A PREPARAR
+## 📊 GRÁFICOS INSERIDOS (8)
 
-| Ordem | Arquivo | Quando Mostrar |
+| Ordem | Gráfico | Quando Mostrar |
 |-------|---------|----------------|
-| 1️⃣ | `01_distribuicao_alvo.png` | Bloco 1 - Dados (distribuição classes) |
-| 2️⃣ | `03_distribuicoes_morfologicas.png` | Bloco 1 - Dados (histogramas) |
-| 3️⃣ | `05_feature_importance.png` | Bloco 3 - Features importantes |
-| 4️⃣ | `07_shap_beeswarm.png` | Bloco 3 - SHAP global |
-| 5️⃣ | `06_shap_summary_bar.png` | Bloco 3 - Exemplo maligno |
-| 6️⃣ | `04_matrizes_confusao.png` | Bloco 3 - Exemplo benigno |
+| 1️⃣ | Distribuição da classe alvo | Bloco 1 - Dados (distribuição das classes) |
+| 2️⃣ | Distribuições morfológicas | Bloco 1 - Dados (histogramas) |
+| 3️⃣ | Importância das características | Bloco 3 - Features importantes |
+| 4️⃣ | SHAP Beeswarm | Bloco 3 - SHAP global |
+| 5️⃣ | SHAP Bar | Bloco 3 - Importância global |
+| 6️⃣ | SHAP Waterfall maligno | Bloco 3 - Exemplo local no teste |
+| 7️⃣ | SHAP Waterfall benigno | Bloco 3 - Exemplo local no teste |
+| 8️⃣ | Matrizes de confusão | Bloco 3 - Comparação dos modelos |
 
 ---
 
 ## 📹 CHECKLIST ANTES DE GRAVAR
 
-- [ ] 6 gráficos extraídos em `tech_challenge/imagens/`
+- [ ] Conferir se os 8 gráficos de vídeo aparecem corretamente no teleprompter
 - [ ] Áudio testado (sem ruído de fundo)
 - [ ] Iluminação boa (rosto bem iluminado)
 - [ ] Câmera estável (tripé)

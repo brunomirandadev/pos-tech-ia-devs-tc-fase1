@@ -22,7 +22,7 @@ O arquivo `SCRIPT_TELEPROMPTER_10MIN.md` foi **totalmente ajustado e validado** 
 ### ✅ Atualização de Resumos
 - Resumo final atualizado com métricas corretas
 - Interpretações alinhadas com resultados reais dos testes
-- Número de cânceres não detectados corrigido (2 em vez de 3)
+- Regressão Logística: 2 erros totais no teste, incluindo 1 caso maligno não detectado
 
 ### ✅ Formatação Preservada
 - Todas as [PAUSA X seg] mantidas para timing natural
@@ -49,12 +49,12 @@ O arquivo `SCRIPT_TELEPROMPTER_10MIN.md` foi **totalmente ajustado e validado** 
 ### Do Notebook ✅
 - ✓ 569 amostras de dados
 - ✓ 37% malignos, 63% benignos
-- ✓ 32 características por amostra
+- ✓ 32 colunas após remover a coluna vazia: identificador, diagnóstico e 30 medidas numéricas
 - ✓ Split 70% treino, 15% validação, 15% teste
 - ✓ Regressão Logística com 98% acurácia no teste
 - ✓ Árvore de Decisão com 92% acurácia no teste
 - ✓ Algoritmos: LogisticRegression, DecisionTreeClassifier
-- ✓ Explicabilidade: SHAP (Summary, Beeswarm, Force plots)
+- ✓ Explicabilidade: SHAP global (bar e beeswarm) e dois exemplos locais (waterfall)
 - ✓ Feature Importance e Confusion Matrices
 
 ### Do Script ✅
@@ -83,7 +83,7 @@ O arquivo `SCRIPT_TELEPROMPTER_10MIN.md` foi **totalmente ajustado e validado** 
 
 ---
 
-## 🎬 Gráficos Indicados (6 total)
+## 🎬 Gráficos Indicados (8 total)
 
 | # | Gráfico | Bloco | Localização no Script |
 |---|---------|-------|----------------------|
@@ -91,8 +91,10 @@ O arquivo `SCRIPT_TELEPROMPTER_10MIN.md` foi **totalmente ajustado e validado** 
 | 2️⃣ | Distribuições Morfológicas | Bloco 1 | Histogramas das features |
 | 3️⃣ | Feature Importance | Bloco 3 | Seção "Features Importantes" |
 | 4️⃣ | SHAP Beeswarm | Bloco 3 | Seção "SHAP Global" |
-| 5️⃣ | SHAP Summary Bar | Bloco 3 | Seção "Exemplos Individuais" |
-| 6️⃣ | Matrizes de Confusão | Bloco 3 | Seção "Exemplos Individuais" |
+| 5️⃣ | SHAP Bar global | Bloco 3 | Seção "SHAP Global" |
+| 6️⃣ | SHAP Waterfall maligno | Bloco 3 | Exemplo local no teste |
+| 7️⃣ | SHAP Waterfall benigno | Bloco 3 | Exemplo local no teste |
+| 8️⃣ | Matrizes de Confusão | Bloco 3 | Comparação dos modelos |
 
 ---
 
@@ -101,7 +103,7 @@ O arquivo `SCRIPT_TELEPROMPTER_10MIN.md` foi **totalmente ajustado e validado** 
 ### Antes de Gravar ✅
 1. Leia o script 1-2 vezes em voz alta
 2. Cronometra sua leitura para confirmar timing
-3. Prepare os 6 gráficos em `tech_challenge/imagens/`
+3. Prepare os 8 gráficos de vídeo em `tech_challenge/imagens/`
 4. Configure um teleprompter (gratuito: teleprompter.com)
 5. Teste câmera, áudio e iluminação
 
@@ -127,7 +129,7 @@ O arquivo `SCRIPT_TELEPROMPTER_10MIN.md` foi **totalmente ajustado e validado** 
 | **Alinhamento com Notebook** | ✅ 100% CONFIRMADO |
 | **Sem Dados Fictícios** | ✅ VERIFICADO |
 | **Métricas Corretas** | ✅ VALIDADO |
-| **Gráficos Indicados** | ✅ 6/6 COMPLETO |
+| **Gráficos de vídeo Indicados** | ✅ 8/8 COMPLETO |
 | **Timing Adequado** | ✅ 12 MIN (NATURAL) |
 | **Pronto para Gravação** | ✅ SIM! |
 
@@ -177,6 +179,6 @@ Para referência rápida durante a gravação:
 
 **Versão:** 2.0 Final  
 **Data:** Hoje  
-**Status:** ✅ PRONTO PARA PRODUÇÃO  
+**Status:** ✅ PRONTO PARA GRAVAÇÃO; NÃO VALIDADO PARA USO CLÍNICO  
 
 **BOA SORTE NA GRAVAÇÃO! 🎬🚀**

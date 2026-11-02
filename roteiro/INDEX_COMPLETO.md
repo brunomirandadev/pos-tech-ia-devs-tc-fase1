@@ -6,7 +6,7 @@
 1. **Abra:** `SCRIPT_TELEPROMPTER_10MIN.md` ← USE ESTE ARQUIVO
 2. **Leia:** `GUIA_RAPIDO_GRAVACAO.md` (passo-a-passo)
 3. **Configure:** Teleprompter (teleprompter.com ou similar)
-4. **Grave:** Com os 6 gráficos prontos
+4. **Grave:** Com os 8 gráficos de vídeo prontos
 
 ---
 
@@ -82,7 +82,7 @@
 2. PREPARE O AMBIENTE
    ├─ Câmera, áudio, iluminação (10 min)
    ├─ Configure teleprompter (5 min)
-   └─ Prepare 6 gráficos (5 min)
+   └─ Prepare 8 gráficos de vídeo (5 min)
 
 3. PRATIQUE (OPCIONAL MAS RECOMENDADO)
    └─> Leia o script 1 vez em voz alta (~12 min)
@@ -106,7 +106,7 @@
 | Sem dados fictícios | ✅ Verificado | VALIDACAO_FINAL_SCRIPT.md |
 | Métricas corretas (98%, 97%, 81%) | ✅ Confirmado | SCRIPT_TELEPROMPTER_10MIN.md |
 | Timing estimado (12 min) | ✅ Calculado | VALIDACAO_FINAL_SCRIPT.md |
-| 6 gráficos indicados | ✅ Localizados | GUIA_RAPIDO_GRAVACAO.md |
+| 8 gráficos de vídeo indicados | ✅ Localizados | GUIA_RAPIDO_GRAVACAO.md |
 | Pronto para gravação | ✅ SIM! | RESUMO_FINAL.md |
 
 ---
@@ -127,7 +127,7 @@
 
 ## 🎨 Gráficos Necessários
 
-Prepare estes 6 gráficos em `tech_challenge/imagens/`:
+Prepare estes 8 gráficos em `tech_challenge/imagens/`:
 
 | # | Nome | Bloco | Exibir Quando |
 |---|------|-------|----------------|
@@ -135,8 +135,10 @@ Prepare estes 6 gráficos em `tech_challenge/imagens/`:
 | 2️⃣ | `03_distribuicoes_morfologicas.png` | Bloco 1 | Histogramas (Raio, Concavidade, Textura) |
 | 3️⃣ | `05_feature_importance.png` | Bloco 3 | Top 3 features (Concave Points, Radius, Texture) |
 | 4️⃣ | `07_shap_beeswarm.png` | Bloco 3 | Padrão global SHAP |
-| 5️⃣ | `06_shap_summary_bar.png` | Bloco 3 | Exemplos individuais |
-| 6️⃣ | `04_matrizes_confusao.png` | Bloco 3 | Exemplo benigno |
+| 5️⃣ | `06_shap_summary_bar.png` | Bloco 3 | Importância global SHAP |
+| 6️⃣ | `08_shap_local_maligno.png` | Bloco 3 | Waterfall do caso maligno |
+| 7️⃣ | `09_shap_local_benigno.png` | Bloco 3 | Waterfall do caso benigno |
+| 8️⃣ | `04_matrizes_confusao.png` | Bloco 3 | Comparação dos modelos |
 
 ---
 
@@ -173,7 +175,7 @@ Para entender melhor o projeto:
 
 ## 🚀 Checklist Final Antes de Gravar
 
-- [ ] Todos os 6 gráficos prontos em `tech_challenge/imagens/`
+- [ ] Todos os 8 gráficos de vídeo prontos em `tech_challenge/imagens/`
 - [ ] Teleprompter configurado com `SCRIPT_TELEPROMPTER_10MIN.md`
 - [ ] Câmera testada e estável
 - [ ] Áudio testado (sem ruído de fundo)
@@ -199,7 +201,7 @@ Para entender melhor o projeto:
 ---
 
 **Versão:** 2.0 Final  
-**Status:** ✅ PRONTO PARA PRODUÇÃO  
+**Status:** ✅ PRONTO PARA GRAVAÇÃO; NÃO VALIDADO PARA USO CLÍNICO
 **Última atualização:** Hoje  
 
 ---

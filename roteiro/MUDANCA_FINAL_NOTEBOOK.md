@@ -36,7 +36,7 @@ Abra: **`GUIA_NAVEGACAO_NOTEBOOK.md`**
 ### Passo 2: Preparar o Notebook
 1. Abra `notebook/analise_diagnostico.ipynb`
 2. Execute tudo (Cell → Run All)
-3. Identifique onde estão os 6 gráficos (use Ctrl+F)
+3. Identifique onde estão os 8 gráficos de vídeo (use Ctrl+F)
 
 ### Passo 3: Configurar Telas
 ```
@@ -75,7 +75,7 @@ Opção 3 (1 tela):
 
 - [ ] Li `GUIA_NAVEGACAO_NOTEBOOK.md`
 - [ ] Notebook está executado completamente
-- [ ] Encontrei os 6 gráficos no notebook (testei Ctrl+F)
+- [ ] Encontrei os 8 gráficos de vídeo no notebook (testei Ctrl+F)
 - [ ] Teleprompter está aberto com `SCRIPT_TELEPROMPTER_10MIN.md`
 - [ ] Telas estão configuradas (notebook + teleprompter)
 - [ ] Fiz um teste simulando a gravação

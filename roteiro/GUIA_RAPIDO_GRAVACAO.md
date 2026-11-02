@@ -68,26 +68,31 @@
 ```
 🔍 BLOCO 3 - PARTE A: Features Importantes
 ├─ [MOSTRAR GRÁFICO #3: Feature Importance]
-│  └─ Cite top 3: Concave Points, Radius, Texture
+│  ├─ Árvore de Decisão: perimeter_worst, concave points_worst, texture_worst
+│  └─ Regressão Logística: texture_worst, radius_se, symmetry_worst
 │
-└─ Explique por que faz sentido médico
+└─ Explique que são rankings dos modelos, não relações causais
 
 BLOCO 3 - PARTE B: SHAP Global
 ├─ [MOSTRAR GRÁFICO #4: SHAP Beeswarm]
 │  ├─ Explique cores (azul=baixo, vermelho=alto)
-│  ├─ Explique posição (esquerda=benigno, direita=maligno)
-│  └─ Mostre padrão cristalino para Concave Points
+│  ├─ Explique posição (contribuição negativa/positiva para a saída)
+│  └─ Destaque texture_worst no ranking da Regressão Logística
 │
-└─ Reforce: modelo aprendeu regras médicas reais
+└─ [MOSTRAR GRÁFICO #5: SHAP Bar global]
+   └─ Compare a magnitude média das contribuições
 
 BLOCO 3 - PARTE C: Exemplos Individuais
-├─ [MOSTRAR GRÁFICO #5: SHAP Summary Bar]
-│  └─ Explique paciente COM CÂNCER (setas vermelhas)
+├─ [MOSTRAR GRÁFICO #6: Waterfall SHAP - caso maligno]
+│  └─ Explique a probabilidade prevista e as contribuições em log-odds
 │
-├─ [MOSTRAR GRÁFICO #6: Matrizes de Confusão]
-│  └─ Explique paciente SEM CÂNCER (setas azuis)
+├─ [MOSTRAR GRÁFICO #7: Waterfall SHAP - caso benigno]
+│  └─ Compare contribuições que elevam ou reduzem a saída
 │
-└─ Conclua: transparência total, médico confia
+└─ Reforce: exemplos ilustrativos, revisão médica continua necessária
+
+BLOCO 3 - PARTE D: Avaliação
+└─ [MOSTRAR GRÁFICO #8: Matrizes de Confusão]
 ```
 
 **⚠️ Importante:** Este é o bloco mais longo. Não apresse!
@@ -126,7 +131,7 @@ BLOCO 3 - PARTE C: Exemplos Individuais
 - [ ] Teleprompter configurado e legível
 - [ ] Áudio testado (sem ruído)
 - [ ] Iluminação boa
-- [ ] 6 gráficos prontos para clique
+- [ ] 8 gráficos de vídeo prontos para exibição
 - [ ] Script aberto na tela
 - [ ] Fez respiração profunda 😊
 

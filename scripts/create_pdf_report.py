@@ -155,9 +155,11 @@ def build_pdf():
 
     # Link Info Box
     links_data = [
+        [Paragraph("<b>Aluno:</b>", table_cell_left), Paragraph("Bruno Miranda de Araujo", table_cell_left)],
+        [Paragraph("<b>Matrícula:</b>", table_cell_left), Paragraph("RM378093", table_cell_left)],
         [Paragraph("<b>Link do Repositório Git:</b>", table_cell_left), Paragraph('<font color="#2b6cb0"><u>https://github.com/brunomirandadev/pos-tech-ia-devs-tc-fase1.git</u></font>', table_cell_left)],
         [Paragraph("<b>Link do Dataset (Kaggle):</b>", table_cell_left), Paragraph('<font color="#2b6cb0"><u>https://www.kaggle.com/datasets/uciml/breast-cancer-wisconsin-data/data</u></font>', table_cell_left)],
-        [Paragraph("<b>Vídeo de Demonstração (YouTube/Vimeo):</b>", table_cell_left), Paragraph('<font color="#c53030"><b>[Inserir Link do Vídeo Demonstrativo aqui - até 15 min]</b></font>', table_cell_left)]
+        [Paragraph("<b>Vídeo de Demonstração (YouTube/Vimeo):</b>", table_cell_left), Paragraph('<font color="#c53030"><b>https://youtu.be/BcdXUxI5nv0</b></font>', table_cell_left)]
     ]
     t_links = Table(links_data, colWidths=[150, 337])
     t_links.setStyle(TableStyle([
@@ -241,14 +243,14 @@ def build_pdf():
     story.append(Paragraph("• <b>Remoção de Colunas Espúrias:</b> Eliminação do identificador do paciente (<i>id</i>) e de colunas residuais de exportação (<i>Unnamed: 32</i>).", bullet_style))
     story.append(Paragraph("• <b>Codificação do Alvo:</b> Mapeamento estrito da classe clínica para notação computacional (Maligno = 1, Benigno = 0).", bullet_style))
     story.append(Paragraph("• <b>Separação em 3 Vias (Treino, Validação e Teste):</b> Os dados foram divididos em <b>70% Treino</b> (398 amostras), <b>15% Validação</b> (85 amostras) e <b>15% Teste</b> (86 amostras), ambos estratificados. O conjunto de validação serviu para selecionar modelos e hiperparâmetros, enquanto o conjunto de teste foi mantido completamente cego para a auditoria final.", bullet_style))
-    story.append(Paragraph("• <b>Pipelines do Scikit-Learn:</b> Utilização da classe <code>Pipeline</code> encapsulando <code>StandardScaler</code> e o classificador, prevenindo categoricamente o vazamento de dados (<i>data leakage</i>) do teste para o treino.", bullet_style))
+    story.append(Paragraph("• <b>Pipelines do Scikit-Learn:</b> A Regressão Logística usa <code>StandardScaler</code> dentro de um <code>Pipeline</code>, ajustado somente com os dados de treino. A Árvore de Decisão usa um pipeline sem padronização, pois esse modelo não depende da escala das variáveis.", bullet_style))
     story.append(Spacer(1, 8))
 
     # 4. Modelagem e Resultados
     story.append(Paragraph("4. Modelagem Preditiva e Avaliação Comparativa", h1_style))
     story.append(Paragraph(
         "Foram implementados e comparados dois modelos preditivos complementares: "
-        "<b>Regressão Logística</b> (modelo linear calibrado para probabilidade clínica) e <b>Árvore de Decisão</b> (modelo baseado em regras determinísticas com <code>max_depth=4</code> para controle de sobreajuste).",
+        "<b>Regressão Logística</b> (modelo linear que estima probabilidades, sem calibração adicional neste estudo) e <b>Árvore de Decisão</b> (modelo baseado em regras determinísticas com <code>max_depth=4</code> para controle de sobreajuste).",
         body_style
     ))
 
@@ -300,11 +302,10 @@ def build_pdf():
 
     story.append(Paragraph("5.1. Explicabilidade Avançada com SHAP", h2_style))
     story.append(Paragraph(
-        "Diferente da importância tradicional (que apenas ranqueia magnitude de forma estática), o SHAP calcula a contribuição marginal "
-        "de cada característica tanto de forma global quanto a nível de cada paciente individual. "
-        "O gráfico <i>Beeswarm</i> revela com clareza a direcionalidade clínica: valores elevados de <b><code>concave points_worst</code></b> "
-        "(pontos vermelhos à direita) provocam aumento drástico na pontuação SHAP, empurrando o modelo fortemente para a classificação de malignidade. "
-        "Biologicamente, isso corrobora o consenso oncológico de que contornos nucleares indentados e irregulares são o principal biomarcador de malignidade citológica.",
+        "Os gráficos globais foram calculados para a Regressão Logística selecionada. O gráfico de barras resume a magnitude média das contribuições "
+        "e o <i>Beeswarm</i> mostra sua distribuição e direção no conjunto de teste. <b><code>texture_worst</code></b> tem a maior magnitude média, "
+        "seguida por <code>radius_se</code>, <code>radius_worst</code>, <code>area_worst</code> e <code>symmetry_worst</code>. Valores altos de "
+        "<code>texture_worst</code> tendem a elevar a saída do modelo para a classe maligna. Isso descreve associações aprendidas, não causalidade.",
         body_style
     ))
     if (img_dir / "06_shap_summary_bar.png").exists() and (img_dir / "07_shap_beeswarm.png").exists():
@@ -313,6 +314,24 @@ def build_pdf():
         story.append(Image(str(img_dir / "07_shap_beeswarm.png"), width=5.4*inch, height=2.5*inch))
         story.append(Spacer(1, 8))
 
+    story.append(PageBreak())
+    story.append(Paragraph("5.2. Explicações locais em exemplos do conjunto de teste", h2_style))
+    story.append(Paragraph(
+        "Os gráficos <i>Waterfall</i> mostram como as características contribuem para a saída da Regressão Logística em dois casos de teste "
+        "corretamente classificados: um maligno e um benigno. Os exemplos foram escolhidos entre as previsões corretas de cada classe, "
+        "priorizando as mais próximas do limiar 0.5. As entradas estão padronizadas e as contribuições se somam na escala de <i>log-odds</i>; "
+        "a probabilidade estimada aparece no título. São exemplos ilustrativos, não uma avaliação adicional de desempenho nem um diagnóstico clínico.",
+        body_style
+    ))
+    if (img_dir / "08_shap_local_maligno.png").exists():
+        story.append(Image(str(img_dir / "08_shap_local_maligno.png"), width=6.2*inch, height=3.3*inch))
+        story.append(Spacer(1, 6))
+    if (img_dir / "09_shap_local_benigno.png").exists():
+        story.append(Image(str(img_dir / "09_shap_local_benigno.png"), width=6.2*inch, height=3.3*inch))
+        story.append(Spacer(1, 8))
+
+    story.append(PageBreak())
+
     # 6. Conclusões e Implantação
     story.append(Paragraph("6. Conclusões e Diretrizes de Implantação Hospitalar", h1_style))
     story.append(Paragraph(
@@ -320,8 +339,8 @@ def build_pdf():
         body_style
     ))
     story.append(Paragraph("1. <b>Fila de Triagem Prioritária (LIS/PACS):</b> O modelo deve ser acoplado ao sistema de prontuários do hospital. Pacientes cujo exame apresentar probabilidade calculada de malignidade acima de um patamar seguro são automaticamente alocados no topo da lista de laudos prioritários do patologista.", bullet_style))
-    story.append(Paragraph("2. <b>Calibração do Limiar de Corte (<i>Threshold Moving</i>):</b> Para uso em triagem populacional ampla onde o objetivo é tolerância zero a falsos negativos, o limiar de decisão da Regressão Logística pode ser reduzido de 0.50 para 0.35, atingindo 100% de Recall à custa de uma taxa mínima e controlada de falsos positivos.", bullet_style))
-    story.append(Paragraph("3. <b>Auditoria Médica Caso a Caso com SHAP:</b> Toda predição pode ser acompanhada pelo gráfico SHAP individual, permitindo ao médico checar quais características citológicas dispararam o alerta, consolidando a transparência e confiança no sistema.", bullet_style))
+    story.append(Paragraph("2. <b>Seleção do Limiar de Decisão:</b> Qualquer ajuste do limiar deve ser escolhido com base no conjunto de validação, considerando o equilíbrio entre Recall e falsos positivos. O desempenho final deve ser medido no conjunto de teste, sem atribuir um resultado de Recall a um limiar que não foi avaliado.", bullet_style))
+    story.append(Paragraph("3. <b>Auditoria Médica Caso a Caso:</b> Este relatório inclui dois exemplos SHAP locais para ilustrar as contribuições do modelo. Uma integração clínica deve gerar explicações locais por caso, validar sua apresentação e manter a revisão do médico especialista.", bullet_style))
     story.append(Spacer(1, 6))
 
     # 7. Instruções de Execução

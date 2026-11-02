@@ -103,7 +103,7 @@ Após análise direta do arquivo `analise_diagnostico.ipynb`, confirmou-se:
 | **Acurácia Árvore (Teste)** | 92% | Notebook - Classification Report |
 | **Recall Árvore (Teste)** | 81% (para malignos) | Notebook - Classification Report |
 | **Algoritmos usados** | LogisticRegression, DecisionTreeClassifier | Notebook - Imports e Pipeline |
-| **Técnicas de explicabilidade** | SHAP (Summary, Beeswarm, Force plots) | Notebook - Seção de Interpretabilidade |
+| **Técnicas de explicabilidade** | SHAP global (bar e beeswarm) e local (waterfall em dois casos de teste) | Notebook - Seção de Interpretabilidade |
 
 ---
 
@@ -121,7 +121,7 @@ Após análise direta do arquivo `analise_diagnostico.ipynb`, confirmou-se:
 ## 📝 Próximos Passos Recomendados
 
 1. ✅ **Script validado** — Está pronto para usar na gravação
-2. ✅ **Preparar 6 gráficos** em `tech_challenge/imagens/`:
+2. ✅ **Preparar 8 gráficos de vídeo** em `tech_challenge/imagens/`:
    - 01_distribuicao_alvo.png (Bloco 1)
    - 03_distribuicoes_morfologicas.png (Bloco 1)
    - 05_feature_importance.png (Bloco 3)

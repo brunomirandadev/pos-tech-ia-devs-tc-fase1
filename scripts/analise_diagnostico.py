@@ -331,24 +331,44 @@ plt.tight_layout()
 plt.show()
 
 # %%
-# 7.2. Explicabilidade Avançada com SHAP (SHapley Additive exPlanations)
-print("--- CALCULANDO SHAP VALUES PARA AVALIAÇÃO DE EXPLICABILIDADE ---")
-explainer = shap.TreeExplainer(dt_model)
-shap_values = explainer(X_test)
+# 7.2. SHAP Global e Local para a Regressão Logística
+print("--- CALCULANDO SHAP GLOBAL E LOCAL PARA A REGRESSÃO LOGÍSTICA ---")
+scaler = pipeline_lr.named_steps['scaler']
+X_train_scaled = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns, index=X_train.index)
+X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
+masker = shap.maskers.Independent(X_train_scaled, max_samples=len(X_train_scaled))
+explainer_lr = shap.LinearExplainer(lr_model, masker)
+shap_values_lr = explainer_lr(X_test_scaled)
 
-# Gráfico 1: Impacto Médio Global (Bar Plot)
-plt.figure(figsize=(10, 6))
-shap.plots.bar(shap_values[:, :, 1], show=False)
-plt.title("SHAP: Importância Global dos Atributos na Detecção de Malignidade (Classe 1)", fontsize=12, fontweight='bold')
+# Gráfico 1: Importância global (Bar Plot)
+shap.plots.bar(shap_values_lr, show=False)
+plt.title("SHAP: Importância Global na Regressão Logística", fontsize=12, fontweight='bold')
 plt.tight_layout()
 plt.show()
 
-# Gráfico 2: Direcionalidade do Efeito (Beeswarm Plot)
-plt.figure(figsize=(10, 6))
-shap.plots.beeswarm(shap_values[:, :, 1], show=False)
-plt.title("SHAP Beeswarm: Impacto e Direção das Características Citológicas", fontsize=12, fontweight='bold')
+# Gráfico 2: Distribuição e direção das contribuições (Beeswarm)
+shap.plots.beeswarm(shap_values_lr, show=False)
+plt.title("SHAP Beeswarm: Impacto e Direção na Regressão Logística", fontsize=12, fontweight='bold')
 plt.tight_layout()
 plt.show()
+
+# Gráficos 3 e 4: Explicações locais de casos corretamente classificados no teste
+for class_value, class_name in [(1, "Maligno"), (0, "Benigno")]:
+    candidates = np.flatnonzero((y_test.to_numpy() == class_value) & (y_test_pred_lr == class_value))
+    if candidates.size == 0:
+        raise ValueError(f"Nenhum caso de teste corretamente classificado para a classe {class_name}.")
+
+    position = candidates[np.argmin(np.abs(y_test_proba_lr[candidates] - 0.5))]
+    shap.plots.waterfall(shap_values_lr[position], max_display=10, show=False)
+    plt.title(
+        f"SHAP local - Caso {class_name} corretamente classificado\n"
+        f"Probabilidade estimada de malignidade: {y_test_proba_lr[position]:.1%}",
+        fontsize=10,
+        fontweight='bold'
+    )
+    plt.tight_layout()
+    plt.show()
+    print(f"Caso {class_name}: linha {X_test.index[position]}, probabilidade de malignidade {y_test_proba_lr[position]:.1%}")
 
 # %% [markdown]
 # ### Interpretação Clínica com SHAP:
@@ -376,9 +396,8 @@ plt.show()
 # - **Triagem de Prioridade em Filas de Laudo:** Integrar o modelo ao PACS/LIS do hospital universitário. Amostras que apresentarem
 #   probabilidade calculada de malignidade superior ao limiar de segurança devem ser imediatamente marcadas com bandeira vermelha
 #   para análise prioritária pelo médico patologista.
-# - **Ajuste Fino do Limiar (*Threshold Moving*):** Para aplicação estrita de rastreio de saúde pública onde nenhum falso negativo
-#   é aceitável, o limiar de decisão da Regressão Logística pode ser calibrado de 0.50 para 0.35, priorizando 100% de Recall
-#   à custa de alguns exames confirmatórios adicionais.
+# - **Seleção do Limiar:** Qualquer ajuste deve ser escolhido no conjunto de validação, considerando o impacto sobre Recall
+#   e falsos positivos. O desempenho final deve ser medido no conjunto de teste; esta análise não avaliou um limiar alternativo.
 #
 # ---
 # > **DIRETRIZ ÉTICA E CLÍNICA OBRIGATÓRIA:**

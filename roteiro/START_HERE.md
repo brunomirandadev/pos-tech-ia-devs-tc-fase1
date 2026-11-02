@@ -51,7 +51,7 @@ Todos os números foram verificados contra o notebook:
 - 569 amostras ✅
 - 98% acurácia (Logística) ✅
 - 97% recall (Logística) ✅
-- 6 gráficos do notebook indicados ✅
+- 8 gráficos de vídeo do notebook indicados ✅
 - Sem dados fictícios ✅
 - **Agora:** Sem necessidade de exportar imagens separadas ✅
 

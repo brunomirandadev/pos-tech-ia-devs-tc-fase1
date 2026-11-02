@@ -16,7 +16,7 @@
 ### **BLOCO 2: DADOS (1:00 min)**
 **[Mostrar 2 gráficos]**
 - **569 amostras** (63% benigno, 37% maligno) — *mostrar pie chart*
-- **32 features** derivadas de medidas citológicas
+- **30 medidas numéricas** das características do núcleo celular
 - Núcleos malignos têm **raio, área e concavidade maiores** — *mostrar histogramas sobrepostos*
 
 ---
@@ -28,21 +28,20 @@
 
 | Modelo | Acurácia | Recall |
 |--------|----------|--------|
-| **Regressão Logística** | 97.7% | 97.6% |
-| **Árvore de Decisão** | 95.3% | 98.8% |
+| **Regressão Logística** | 97.67% | 96.88% |
+| **Árvore de Decisão** | 91.86% | 81.25% |
 
-- Escolhida: **Regressão Logística** (97.7% acurácia, 0.99 ROC-AUC)
-- **Apenas 3 casos de câncer não detectados** em 86 testes
+- Escolhida: **Regressão Logística** (97.67% de acurácia e 0.9988 de ROC-AUC)
+- No teste, a Regressão Logística deixou passar **1 caso maligno**; a Árvore de Decisão, **6**
 
 ---
 
 ### **BLOCO 4: INTERPRETABILIDADE COM SHAP (4:30 min)**
 
 #### **4.1 Quais features importam?**
-**[Feature Importance - barras]**
-- `concave_points_worst` — contorno celular indentado
-- `radius_worst` — tamanho do núcleo
-- `texture_worst` — irregularidade da textura
+**[Mostrar os dois gráficos: importância Gini da Árvore de Decisão e magnitude dos coeficientes da Regressão Logística]**
+- Na Árvore de Decisão, `perimeter_worst` tem maior importância, seguido por `concave points_worst` e `texture_worst`
+- Na Regressão Logística, as maiores magnitudes incluem `texture_worst`, `radius_se` e `symmetry_worst`
 
 **Insight:** "Características de irregularidade celular indicam malignidade."
 
@@ -50,26 +49,32 @@
 **[Gráfico SHAP]**
 - Eixo X: Contribuição para "maligno"
 - Pontos vermelhos (valores altos) → **empurram para maligno**
-- "Concave_points alto (vermelho) = forte indicador de câncer"
+- `texture_worst` aparece na primeira linha, seguida por `radius_se`, `radius_worst`, `area_worst` e `symmetry_worst`. Valores altos de `texture_worst` tendem a contribuir para a classe maligna, mas há variação entre as amostras.
 
-#### **4.3 SHAP Force Plot — Exemplo Individual**
-**[2 Exemplos]**
-1. **Paciente maligno:** concave_points alto (+0.8) + radius alto (+0.5) = 97% maligno
-2. **Paciente benigno:** features baixas → 2% maligno = seguro
+#### **4.3 SHAP Bar Plot — Importância Global**
+**[Mostrar gráfico SHAP de barras]**
+- Resume a magnitude média absoluta das contribuições no conjunto de teste.
+- `texture_worst` tem maior magnitude média, seguida por `radius_se`, `radius_worst`, `area_worst` e `symmetry_worst`.
 
-**Frase:** "Médico vê exatamente quais características dispararam o alerta."
+**Frase:** "Este gráfico resume globalmente as contribuições SHAP; ele não explica um paciente específico."
+
+#### **4.4 SHAP Waterfall — Exemplos Locais**
+**[Mostrar os dois waterfall plots locais]**
+- Caso maligno corretamente classificado: probabilidade estimada de malignidade de **53,1%**.
+- Caso benigno corretamente classificado: probabilidade estimada de malignidade de **24,4%**.
+- As entradas estão padronizadas e as contribuições se somam em log-odds; os exemplos são ilustrativos e não substituem a avaliação médica.
 
 ---
 
 ### **BLOCO 5: APLICAÇÃO PRÁTICA (1:00 min)**
-- **Integração LIS/PACS:** Exames com prob > 50% vão para o topo da fila
-- **Ajuste de sensibilidade:** Pode reduzir threshold para 0.35 se quiser 100% recall
-- **Auditoria:** Cada predição vem com explicação SHAP
+- **Integração LIS/PACS:** Como proposta, casos sinalizados podem ser priorizados para revisão pelo patologista.
+- **Ajuste de sensibilidade:** O limiar deve ser selecionado na validação, considerando Recall e falsos positivos; o resultado final deve ser medido no teste. Este projeto não avaliou um limiar alternativo.
+- **Auditoria:** O notebook inclui dois exemplos SHAP locais; seu uso para apoiar decisões em cada paciente ainda exige validação clínica e operacional.
 
 ---
 
 ### **BLOCO 6: CONCLUSÃO (0:30 min)**
-✅ **97.7% acurácia** | ✅ **Interpretável** | ✅ **Pronto para produção**
+✅ **97.67% de acurácia no teste** | ✅ **Análise global com SHAP** | ✅ **Protótipo para validação adicional, não pronto para uso clínico**
 
 **Links:**
 - Repositório: `github.com/brunomirandadev/pos-tech-ia-devs-tc-fase1`
@@ -83,11 +88,13 @@
 |------|--------|
 | 1️⃣ Mostrar distribuição de classes (pie chart) | ⬜ |
 | 2️⃣ Mostrar histogramas: malignos vs benignos | ⬜ |
-| 3️⃣ Mostrar tabela de métricas (97.7% acurácia) | ⬜ |
-| 4️⃣ Mostrar gráfico Feature Importance | ⬜ |
-| 5️⃣ Mostrar SHAP beeswarm | ⬜ |
-| 6️⃣ Mostrar 2 exemplos SHAP force plot | ⬜ |
-| 7️⃣ Explicar aplicação clínica (LIS/PACS) | ⬜ |
+| 3️⃣ Mostrar tabela de métricas dos dois modelos | ⬜ |
+| 4️⃣ Mostrar Feature Importance dos dois modelos | ⬜ |
+| 5️⃣ Mostrar SHAP bar global | ⬜ |
+| 6️⃣ Mostrar SHAP beeswarm global | ⬜ |
+| 7️⃣ Mostrar waterfall local do caso maligno | ⬜ |
+| 8️⃣ Mostrar waterfall local do caso benigno | ⬜ |
+| 9️⃣ Explicar aplicação proposta e limites de uso | ⬜ |
 
 ---
 
@@ -97,7 +104,7 @@
 0:00  | Introdução
 1:00  | Dados (gráficos)
 2:00  | Modelos e resultados
-4:00  | SHAP (Feature Imp + Beeswarm + Exemplos)
+4:00  | SHAP (Feature Importance + bar global + beeswarm)
 8:30  | Aplicação prática
 9:30  | Conclusão e links
 10:00 | FIM
@@ -109,10 +116,10 @@
 
 1. ✅ Pie chart: distribuição de classes (63% benigno, 37% maligno)
 2. ✅ Histogramas sobrepostos: benignos vs malignos
-3. ✅ Tabela de comparação de modelos (acurácia, recall, ROC-AUC)
-4. ✅ Feature Importance (top 5 features)
-5. ✅ SHAP Beeswarm (contribuição global)
-6. ✅ SHAP Force Plot (2 exemplos: 1 maligno, 1 benigno)
+3. ✅ Tabela de comparação de modelos (acurácia, recall, F1-Score e ROC-AUC)
+4. ✅ Feature Importance dos dois modelos
+5. ✅ SHAP bar (importância global)
+6. ✅ SHAP Beeswarm (distribuição e direção global)
 
 ---
 
@@ -122,7 +129,7 @@
 |---------|--------------|
 | **Ritmo** | 1 conceito por 30-45 seg, fala clara |
 | **Visuais** | Maximize gráficos, minimize código |
-| **Números** | Cite: 97.7%, 0.99 ROC-AUC, apenas 3 falsos negativos |
+| **Números** | Cite: 97.67% de acurácia, 0.9988 de ROC-AUC e 1 falso negativo na Regressão Logística |
 | **Jargão** | Explique SHAP como "decomposição de contribuição" |
 | **Pausa** | 2-3 seg após cada resultado importante |
 | **Áudio** | Fundo neutro, sem ruído, qualidade boa |
@@ -135,16 +142,16 @@
 "Bem-vindo! Essa solução resolve um problema real de hospitais: com crescimento de pacientes, fila de exames mamários gera atraso que prejudica diagnóstico. Nossa IA ajuda a priorizar os casos críticos para análise prioritária. Importante: a IA é uma ferramenta de apoio; a palavra final é sempre do médico."
 
 **BLOCO 2:**
-"Usamos 569 amostras de exames de mama. Aqui vemos que 63% são benignos e 37% malignos. Esses 32 números que aparecem em cada amostra são medidas do núcleo da célula. Veja: núcleos cancerosos (laranja) têm raio, área e contorno muito mais irregulares que os benignos."
+"Usamos 569 amostras de exames de mama. Cerca de 63% são benignas e 37% malignas. Cada amostra tem 30 medidas numéricas do núcleo celular, além do identificador e do diagnóstico. Nos histogramas, algumas medidas apresentam distribuições diferentes entre os grupos, com sobreposição entre benignos e malignos."
 
 **BLOCO 3:**
-"Treinamos 2 modelos de IA. A Regressão Logística alcançou 97.7% de acurácia — significa que acertou 84 de 86 casos de teste. Apenas 3 cânceres não foram detectados. A Árvore de Decisão detecta mais cânceres, mas comete falsos alarmes, então escolhemos a Regressão Logística."
+"Treinamos dois modelos. No conjunto de teste, a Regressão Logística alcançou 97,67% de acurácia, 96,88% de recall e 96,88% de precisão. Errou dois casos no total, incluindo um caso maligno não detectado. A Árvore de Decisão alcançou 91,86% de acurácia e 81,25% de recall, deixando passar seis dos 32 casos malignos."
 
 **BLOCO 4:**
-"Agora o mais importante: qual foi a razão de cada predição? Usamos SHAP, que decompõe a decisão do modelo. Aqui vemos que 'contorno indentado' é o maior indicador. Para um paciente maligno, essas características (valores altos) empurram a predição para câncer. Para um benigno, as características baixas afastam o risco."
+"Para entender o comportamento do modelo, usamos SHAP. Na Regressão Logística, texture_worst tem a maior magnitude média global, seguida por radius_se e radius_worst. Os dois waterfall plots mostram as contribuições em um caso benigno e um maligno corretamente classificados. Os valores SHAP somam na escala de log-odds; os exemplos ajudam a inspecionar o modelo, mas não substituem a avaliação médica."
 
 **BLOCO 5:**
-"Como isso funciona na prática? O modelo integra no sistema do hospital. Quando um exame chega, se tem probabilidade > 50% de câncer, sobe para o topo da fila de análise. O patologista vê também um gráfico que explica por que a IA alertou, aumentando confiança no sistema."
+"Como poderia funcionar na prática? Em uma integração futura, casos sinalizados poderiam ser priorizados para revisão pelo patologista. O limiar precisaria ser escolhido com dados de validação e seu impacto em recall e falsos positivos medido no teste. Este notebook mostra dois exemplos SHAP locais; seu uso para apoiar decisões clínicas exige validação adicional."
 
 **BLOCO 6:**
 "Resumindo: modelo com 97.7% acurácia, totalmente interpretável, pronto para usar. Se quiser mais detalhes, acesse o repositório no GitHub ou o relatório técnico em PDF."

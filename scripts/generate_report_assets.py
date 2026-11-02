@@ -146,13 +146,17 @@ plt.tight_layout()
 plt.savefig(img_dir / "05_feature_importance.png")
 plt.close()
 
-# 6. SHAP Plots
-explainer = shap.TreeExplainer(dt_model)
-shap_values = explainer(X_test)
+# 6. SHAP Plots for the selected Logistic Regression model
+scaler = pipeline_lr.named_steps['scaler']
+X_train_scaled = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns, index=X_train.index)
+X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
+masker = shap.maskers.Independent(X_train_scaled, max_samples=len(X_train_scaled))
+explainer = shap.LinearExplainer(lr_model, masker)
+shap_values = explainer(X_test_scaled)
 
 # Plot Bar
 plt.figure(figsize=(9, 5))
-shap.plots.bar(shap_values[:, :, 1], show=False)
+shap.plots.bar(shap_values, show=False)
 plt.title("SHAP: Importância Global dos Atributos na Detecção de Malignidade", fontsize=11, fontweight='bold')
 plt.tight_layout()
 plt.savefig(img_dir / "06_shap_summary_bar.png")
@@ -160,11 +164,36 @@ plt.close()
 
 # Plot Beeswarm
 plt.figure(figsize=(9, 5))
-shap.plots.beeswarm(shap_values[:, :, 1], show=False)
+shap.plots.beeswarm(shap_values, show=False)
 plt.title("SHAP Beeswarm: Impacto e Direção das Características Citológicas", fontsize=11, fontweight='bold')
 plt.tight_layout()
 plt.savefig(img_dir / "07_shap_beeswarm.png")
 plt.close()
 
-print("All 7 report charts generated successfully in tech_challenge/imagens/")
+# Local explanations for correctly classified malignant and benign test samples.
+y_test_values = y_test.to_numpy()
+y_test_pred_lr = pipeline_lr.predict(X_test)
+y_test_proba_lr = pipeline_lr.predict_proba(X_test)[:, 1]
+
+for class_value, class_name, file_name in [
+    (1, "Maligno", "08_shap_local_maligno.png"),
+    (0, "Benigno", "09_shap_local_benigno.png"),
+]:
+    candidates = np.flatnonzero((y_test_values == class_value) & (y_test_pred_lr == class_value))
+    if candidates.size == 0:
+        raise ValueError(f"Nenhum caso de teste corretamente classificado para a classe {class_name}.")
+
+    position = candidates[np.argmin(np.abs(y_test_proba_lr[candidates] - 0.5))]
+    shap.plots.waterfall(shap_values[position], max_display=10, show=False)
+    plt.title(
+        f"SHAP local - Caso {class_name} corretamente classificado\n"
+        f"Probabilidade estimada de malignidade: {y_test_proba_lr[position]:.1%}",
+        fontsize=10,
+        fontweight='bold'
+    )
+    plt.tight_layout()
+    plt.savefig(img_dir / file_name, dpi=150, bbox_inches="tight")
+    plt.close()
+
+print("All 9 report charts generated successfully in tech_challenge/imagens/")
 
