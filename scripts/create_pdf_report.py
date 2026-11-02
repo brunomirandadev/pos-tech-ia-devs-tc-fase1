@@ -159,7 +159,7 @@ def build_pdf():
         [Paragraph("<b>Matrícula:</b>", table_cell_left), Paragraph("RM378093", table_cell_left)],
         [Paragraph("<b>Link do Repositório Git:</b>", table_cell_left), Paragraph('<font color="#2b6cb0"><u>https://github.com/brunomirandadev/pos-tech-ia-devs-tc-fase1.git</u></font>', table_cell_left)],
         [Paragraph("<b>Link do Dataset (Kaggle):</b>", table_cell_left), Paragraph('<font color="#2b6cb0"><u>https://www.kaggle.com/datasets/uciml/breast-cancer-wisconsin-data/data</u></font>', table_cell_left)],
-        [Paragraph("<b>Vídeo de Demonstração (YouTube/Vimeo):</b>", table_cell_left), Paragraph('<font color="#c53030"><b>https://youtu.be/0JMAPF29jHM</b></font>', table_cell_left)]
+        [Paragraph("<b>Vídeo de Demonstração (YouTube/Vimeo):</b>", table_cell_left), Paragraph('<font color="#c53030"><b>https://youtu.be/x-sVhvrblck</b></font>', table_cell_left)]
     ]
     t_links = Table(links_data, colWidths=[150, 337])
     t_links.setStyle(TableStyle([
