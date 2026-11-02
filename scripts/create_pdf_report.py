@@ -319,8 +319,10 @@ def build_pdf():
     story.append(Paragraph(
         "Os gráficos <i>Waterfall</i> mostram como as características contribuem para a saída da Regressão Logística em dois casos de teste "
         "corretamente classificados: um maligno e um benigno. Os exemplos foram escolhidos entre as previsões corretas de cada classe, "
-        "priorizando as mais próximas do limiar 0.5. As entradas estão padronizadas e as contribuições se somam na escala de <i>log-odds</i>; "
-        "a probabilidade estimada aparece no título. São exemplos ilustrativos, não uma avaliação adicional de desempenho nem um diagnóstico clínico.",
+        "priorizando as mais próximas do limiar 0.5. As entradas estão padronizadas e as contribuições se somam na escala de <i>log-odds</i>. "
+        "Em termos simples, log-odds é um placar interno: contribuições positivas empurram a saída para maligno e negativas para benigno; "
+        "depois o placar é convertido na probabilidade mostrada no título. Log-odds não é porcentagem. São exemplos ilustrativos, "
+        "não uma avaliação adicional de desempenho nem um diagnóstico clínico.",
         body_style
     ))
     if (img_dir / "08_shap_local_maligno.png").exists():

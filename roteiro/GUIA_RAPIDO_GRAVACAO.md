@@ -84,7 +84,7 @@ BLOCO 3 - PARTE B: SHAP Global
 
 BLOCO 3 - PARTE C: Exemplos Individuais
 ├─ [MOSTRAR GRÁFICO #6: Waterfall SHAP - caso maligno]
-│  └─ Explique a probabilidade prevista e as contribuições em log-odds
+│  └─ Explique log-odds como placar interno convertido depois em probabilidade
 │
 ├─ [MOSTRAR GRÁFICO #7: Waterfall SHAP - caso benigno]
 │  └─ Compare contribuições que elevam ou reduzem a saída

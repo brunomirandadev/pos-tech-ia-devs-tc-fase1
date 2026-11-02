@@ -258,7 +258,7 @@ Agora vou mostrar como as características contribuíram para a saída do modelo
 
 Neste caso, a probabilidade estimada de malignidade é **53,1%**. Cada barra mostra quanto uma característica, em relação ao valor médio de referência, aumenta ou reduz a saída do modelo.
 
-As barras vermelhas empurram a saída para maligno; as azuis, para benigno. Os valores das características à esquerda estão padronizados, e as contribuições se somam na escala de **log-odds**, não diretamente em porcentagens.
+As barras vermelhas empurram a saída para maligno; as azuis, para benigno. Os valores das características à esquerda estão padronizados. Pense em **log-odds** como um placar interno do modelo: as barras somam ou tiram pontos desse placar, e só depois ele é convertido na probabilidade mostrada no título. Por isso, log-odds não é porcentagem.
 
 [PAUSA 2 seg]
 

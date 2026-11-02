@@ -62,7 +62,7 @@
 **[Mostrar os dois waterfall plots locais]**
 - Caso maligno corretamente classificado: probabilidade estimada de malignidade de **53,1%**.
 - Caso benigno corretamente classificado: probabilidade estimada de malignidade de **24,4%**.
-- As entradas estão padronizadas e as contribuições se somam em log-odds; os exemplos são ilustrativos e não substituem a avaliação médica.
+- Pense em log-odds como um placar interno: contribuições positivas empurram para maligno e negativas para benigno; depois o modelo converte esse placar em probabilidade. Log-odds não é porcentagem. As entradas estão padronizadas, e os exemplos não substituem a avaliação médica.
 
 ---
 
